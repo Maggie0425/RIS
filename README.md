@@ -103,7 +103,8 @@ Only install Java 21 and Node.js 22 if you want to run Angular or Spring Boot ou
 │       └── init/
 │           └── README.md             # Database-level initialization only
 ├── docs/
-│   └── architecture.md
+│   ├── architecture.md
+│   └── development-workflow.md
 ├── README.md
 └── task-desc.md
 ```
@@ -214,3 +215,7 @@ The core project excludes image storage/viewing, real patient data, paid or clou
 ### Architecture Context
 
 Non-obvious domain rules and component boundaries are maintained in [`docs/architecture.md`](docs/architecture.md). The original client brief is available in [`task-desc.md`](task-desc.md).
+
+### Team Development
+
+The branch, commit, review, and pull request process is documented in [`docs/development-workflow.md`](docs/development-workflow.md).
