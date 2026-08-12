@@ -8,6 +8,9 @@ Thumbs.db
 *.swp
 *.swo
 
+# Local AI assistant instructions
+/AGENTS.md
+
 # Environment files
 .env
 .env.*

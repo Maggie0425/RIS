@@ -4,35 +4,92 @@ The final project topic and repository name are still being confirmed.
 The repository will contain the team’s source code, documentation, setup instructions, and project deliverables.
 
 
-## Getting Started
+## Team Setup
 
-Copy the example environment file if you want to override the development defaults:
+The minimum local setup is **Git + Docker Desktop**. Java, Maven, Node.js, Angular CLI, PostgreSQL, and Nginx do not need to be installed locally because Docker builds and runs them.
+
+### Windows with WSL 2
+
+1. Install Git inside the Ubuntu distribution:
+
+   ```bash
+   sudo apt update
+   sudo apt install -y git
+   ```
+
+2. Install and start Docker Desktop for Windows.
+3. In Docker Desktop, enable **Settings → General → Use the WSL 2 based engine**.
+4. Enable **Settings → Resources → WSL Integration → Ubuntu**, then apply and restart.
+5. Verify from the WSL terminal:
+
+   ```bash
+   git --version
+   docker version
+   docker compose version
+   ```
+
+Clone the repository inside the WSL filesystem, such as under `~/projects`, rather than `/mnt/c`, for better Docker build performance.
+
+### macOS
+
+1. Install Git if it is not already available:
+
+   ```bash
+   xcode-select --install
+   ```
+
+2. Install and start Docker Desktop for Mac.
+3. Verify from Terminal:
+
+   ```bash
+   git --version
+   docker version
+   docker compose version
+   ```
+
+### Start the project
+
+From the repository root:
 
 ```bash
-cp .env.example .env
+cp -n .env.example .env
+docker compose up --build
 ```
 
-Start the currently available PostgreSQL service:
+The first build downloads the Java, Node.js, Nginx, and PostgreSQL images and may take several minutes. Later builds reuse Docker's cache.
+
+When all services are running:
+
+- Open `http://localhost:4200`.
+- Verify the API with `curl http://localhost:4200/api/status`.
+- Expect the page and API to report that Angular, Spring Boot, and PostgreSQL are connected.
+
+Press `Ctrl+C` and run the following to stop the project without deleting database data:
 
 ```bash
-docker compose up -d postgres
+docker compose down
 ```
 
-Run the backend in a second terminal:
+To run in the background instead:
 
 ```bash
-cd backend
-./mvnw spring-boot:run
+docker compose up -d --build
+docker compose logs -f
 ```
 
-Run the frontend in a third terminal:
+Useful diagnostics:
 
 ```bash
-cd frontend
-npm start
+docker compose ps
+docker compose logs backend
+docker compose logs postgres
 ```
 
-Open `http://localhost:4200`. The page calls `http://localhost:8080/api/status`; the returned message is stored in PostgreSQL and created by Flyway migrations. Backend and frontend Docker services will be added to `compose.yaml` after their Dockerfiles exist.
+If ports `4200`, `8080`, or `5432` are already in use, stop any locally running Angular, Spring Boot, or PostgreSQL process before starting Compose.
+
+### Optional local development tools
+
+Only install Java 21 and Node.js 22 if you want to run Angular or Spring Boot outside Docker for faster hot reload. They are not required for the minimum team setup. Angular's local development proxy and Nginx in Docker both route `/api` to the backend.
 
 ## Repository Structure
 
@@ -47,7 +104,6 @@ Open `http://localhost:4200`. The page calls `http://localhost:8080/api/status`;
 │           └── README.md             # Database-level initialization only
 ├── docs/
 │   └── architecture.md
-├── AGENTS.md
 ├── README.md
 └── task-desc.md
 ```
@@ -157,4 +213,4 @@ The core project excludes image storage/viewing, real patient data, paid or clou
 
 ### Architecture Context
 
-Non-obvious domain rules and component boundaries are maintained in [`docs/architecture.md`](docs/architecture.md). Codex and other automated contributors should follow [`AGENTS.md`](AGENTS.md). The original client brief is available in [`task-desc.md`](task-desc.md).
+Non-obvious domain rules and component boundaries are maintained in [`docs/architecture.md`](docs/architecture.md). The original client brief is available in [`task-desc.md`](task-desc.md).

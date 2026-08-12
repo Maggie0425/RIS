@@ -23,7 +23,7 @@ export class App {
   protected readonly loading = signal(true);
 
   constructor() {
-    this.http.get<SystemStatus[]>('http://localhost:8080/api/status').subscribe({
+    this.http.get<SystemStatus[]>('/api/status').subscribe({
       next: (statuses) => {
         this.statuses.set(statuses);
         this.loading.set(false);
