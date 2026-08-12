@@ -1,0 +1,49 @@
+name: ris
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: ris-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ris}
+      POSTGRES_USER: ${POSTGRES_USER:-ris}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ris_dev_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - ris-postgres-data:/var/lib/postgresql/data
+      - ./ris-infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # Add the backend service after backend/Dockerfile exists.
+  # backend:
+  #   build:
+  #     context: ./backend
+  #   environment:
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-ris}
+  #     SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-ris}
+  #     SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-ris_dev_password}
+  #   ports:
+  #     - "8080:8080"   # REST API
+  #     - "11112:11112" # DICOM MWL SCP
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+
+  # Add the frontend service after frontend/Dockerfile exists.
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #   ports:
+  #     - "4200:80"
+  #   depends_on:
+  #     - backend
+
+volumes:
+  ris-postgres-data:

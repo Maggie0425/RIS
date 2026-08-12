@@ -1,0 +1,30 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+main {
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 800px;
+  padding: 4rem 1.5rem;
+}
+
+h1 {
+  font: var(--mat-sys-headline-medium);
+  margin-bottom: 0.5rem;
+}
+
+p {
+  color: var(--mat-sys-on-surface-variant);
+  margin-bottom: 2rem;
+}
+
+mat-card {
+  margin-top: 1rem;
+}
+
+.error {
+  border-color: var(--mat-sys-error);
+  color: var(--mat-sys-error);
+}
