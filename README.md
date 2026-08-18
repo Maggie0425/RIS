@@ -56,13 +56,22 @@ cp -n .env.example .env
 docker compose up --build
 ```
 
-The first build downloads the Java, Node.js, Nginx, and PostgreSQL images and may take several minutes. Later builds reuse Docker's cache.
+The first build downloads the Java, Node.js, Nginx, PostgreSQL, and pgAdmin images and may take several minutes. Later builds reuse Docker's cache.
 
 When all services are running:
 
 - Open `http://localhost:4200`.
+- Open pgAdmin at `http://localhost:5050` and sign in with the credentials from `.env`.
 - Verify the API with `curl http://localhost:4200/api/status`.
 - Expect the page and API to report that Angular, Spring Boot, and PostgreSQL are connected.
+
+To connect pgAdmin to the project database, register a server with:
+
+- Host name: `postgres`
+- Port: `5432`
+- Maintenance database, username, and password: the `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` values from `.env`
+
+Use `postgres`, not `localhost`, as the database host because pgAdmin and PostgreSQL communicate through the Compose network.
 
 Press `Ctrl+C` and run the following to stop the project without deleting database data:
 
@@ -83,9 +92,10 @@ Useful diagnostics:
 docker compose ps
 docker compose logs backend
 docker compose logs postgres
+docker compose logs pgadmin
 ```
 
-If ports `4200`, `8080`, or `5432` are already in use, stop any locally running Angular, Spring Boot, or PostgreSQL process before starting Compose.
+If ports `4200`, `5050`, `8080`, or `5432` are already in use, stop the conflicting process or change the corresponding setting in `.env` before starting Compose.
 
 ### Optional local development tools
 
