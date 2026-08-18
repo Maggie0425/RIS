@@ -22,6 +22,24 @@ Run the project and test the affected behaviour before requesting review:
 docker compose up --build
 ```
 
+### Frontend development with hot reload
+
+For day-to-day frontend work, run PostgreSQL and Spring Boot in Docker:
+
+```bash
+docker compose up postgres backend
+```
+
+Then start Angular from a second terminal:
+
+```bash
+cd frontend
+npm ci
+npm start
+```
+
+Open `http://localhost:4200`. Angular reloads when frontend files change, and the development proxy sends `/api` requests to the backend on port `8080`. Use the full `docker compose up --build` command for integration testing; the Nginx frontend container does not hot reload.
+
 Commit using the conventional commit style, then push the branch:
 
 ```bash
@@ -55,4 +73,3 @@ git branch -d feature/patient-registration
 ```
 
 Create the next branch only after `main` is up to date. If a pull request has conflicts, update the task branch from `main`, resolve and test the conflicts locally, then push the branch again for review.
-

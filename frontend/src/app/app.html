@@ -1,21 +1,9 @@
-<main>
-  <h1>COMP3888 Radiology Information System</h1>
-  <p>Minimum full-stack connection check</p>
-
-  @if (loading()) {
-    <mat-spinner diameter="36" aria-label="Loading system status" />
-  } @else if (error()) {
-    <mat-card appearance="outlined" class="error">
-      <mat-card-content>{{ error() }}</mat-card-content>
-    </mat-card>
-  } @else {
-    @for (status of statuses(); track status.id) {
-      <mat-card appearance="outlined">
-        <mat-card-header>
-          <mat-card-title>{{ status.serviceName }}</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>{{ status.message }}</mat-card-content>
-      </mat-card>
-    }
-  }
-</main>
+<mat-toolbar class="app-toolbar">
+  <a class="brand" routerLink="/patients" aria-label="RIS home"
+    ><mat-icon>local_hospital</mat-icon><span>Radiology Information System</span></a
+  >
+  <nav aria-label="Primary navigation">
+    <a routerLink="/patients" routerLinkActive="active">Patients</a>
+  </nav>
+</mat-toolbar>
+<main><router-outlet /></main>
