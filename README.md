@@ -114,6 +114,7 @@ Only install Java 21 and Node.js 22 if you want to run Angular or Spring Boot ou
 │           └── README.md             # Database-level initialization only
 ├── docs/
 │   ├── architecture.md
+│   ├── database-workflow.md
 │   └── development-workflow.md
 ├── README.md
 └── task-desc.md
@@ -229,3 +230,7 @@ Non-obvious domain rules and component boundaries are maintained in [`docs/archi
 ### Team Development
 
 The branch, commit, review, and pull request process is documented in [`docs/development-workflow.md`](docs/development-workflow.md).
+
+### Database Development
+
+The Flyway migration and pgAdmin usage process is documented in [`docs/database-workflow.md`](docs/database-workflow.md).
