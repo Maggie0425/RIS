@@ -59,13 +59,20 @@ Microservices, an API gateway, a separate Python DICOM service, MongoDB, message
 ORDERED -> SCHEDULED -> ACQUIRED -> REPORTED -> COMPLETED
 ```
 
+Confirmed transition ownership:
+
+- **Receptionist:** `ORDERED -> SCHEDULED`
+- **Technologist:** `SCHEDULED -> ACQUIRED`
+- **Radiologist:** `ACQUIRED -> REPORTED -> COMPLETED`
+
+These permissions must be enforced through API-level role-based access control.
+
 - Status transitions are validated by the backend, not merely by UI controls.
 - Invalid transitions must be rejected.
 - Scheduling supplies the date, time, modality, and scheduled station AE title required by MWL.
-- Acquisition is a separate action after the modality discovers the exam.
-- The current assumption is that acquisition is simulated through a RIS UI/API action. Client confirmation is still required on whether an external DICOM or HL7 message is expected.
+- Acquisition is a separate action after the modality discovers the exam and may be simulated through a RIS UI/API **Mark as Acquired** action. No acquisition result needs to be sent through the MWL query.
 
-Cancellation is a terminal side path for an order that should no longer be performed. The exact states from which cancellation is permitted must be agreed before implementation.
+Cancellation is a terminal side path for an order that should no longer be performed. The client confirmed that cancellation is permitted only before an examination is acquired. Cancelled examinations must be excluded from the active worklist.
 
 ## DICOM Modality Worklist rules
 
@@ -94,6 +101,8 @@ The mapping between RIS fields and DICOM tags must be documented when the domain
 - **Schedule:** planned date/time, modality, and station for an exam order.
 - **Report:** radiologist-authored result associated with an acquired exam.
 - **User and role:** authenticated actor and API permissions.
+
+The database-backed RBAC tables, fixed permission catalogue, and role mappings are defined in [Database-Backed RBAC Design](rbac-design.md). Administrators have every permission and may assign fixed roles, but custom permission editing is outside the core scope.
 
 The final database schema should be derived from these concepts after invariants and cardinalities are agreed. This document should describe relationships and intent; migrations remain the schema source of truth.
 

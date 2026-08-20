@@ -220,7 +220,7 @@ backend/src/main/resources/db/migration/
 ```
 
 ### Scope Boundaries
-
+ m
 The core project excludes image storage/viewing, real patient data, paid or cloud APIs, and a custom UI design system. HL7 v2 messaging, structured report templates, and integration with a PACS project are optional stretch goals.
 
 ### Architecture Context
