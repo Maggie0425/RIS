@@ -63,6 +63,8 @@ When all services are running:
 - Open `http://localhost:4200`.
 - Open pgAdmin at `http://localhost:5050` and sign in with the credentials from `.env`.
 - Verify the API with `curl http://localhost:4200/api/status`.
+- Open Swagger UI at `http://localhost:8080/swagger-ui.html`.
+- View the generated OpenAPI JSON at `http://localhost:8080/api-docs`.
 - Expect the page and API to report that Angular, Spring Boot, and PostgreSQL are connected.
 
 To connect pgAdmin to the project database, register a server with:

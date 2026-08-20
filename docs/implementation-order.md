@@ -21,3 +21,12 @@ Flyway schema
 ```
 
 Keep business rules in backend services, database changes in Flyway migrations, and DICOM-specific types inside the DICOM adapter boundary.
+
+
+## Feature ownership
+Authentication: Spring Security, JWT, RBAC (zhongyang)
+Exam/workflow: ordering and lifecycle transitions
+Scheduling: schedule/reschedule/cancel and worklist queries
+Reporting: report submission and completion
+DICOM: MWL adapter and C-FIND matching (zhongyang)
+Frontend: screens developed alongside stable APIs
