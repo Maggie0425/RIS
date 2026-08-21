@@ -2,6 +2,13 @@
 
 This document is the concise planning contract for frontend and backend work. Implemented request and response schemas are generated from Spring controller, DTO, validation, and OpenAPI annotations and exposed through Swagger UI.
 
+## Generated API documentation
+
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- OpenAPI JSON: `http://localhost:8080/api-docs`
+
+These URLs are available while the backend is running locally.
+
 ## Conventions
 
 - Base path: `/api`
