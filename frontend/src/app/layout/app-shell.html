@@ -1,0 +1,43 @@
+<div class="shell">
+  <mat-toolbar class="toolbar">
+    <button mat-icon-button type="button" aria-label="Toggle navigation" (click)="drawer.toggle()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <a class="brand" routerLink="/dashboard" aria-label="RIS dashboard">
+      <img src="favicon.svg" alt="" />
+      <span class="brand-divider" aria-hidden="true"></span>
+      <span class="brand-name">Radiology Information System</span>
+    </a>
+  </mat-toolbar>
+
+  <mat-sidenav-container class="workspace">
+    <mat-sidenav
+      #drawer
+      class="sidenav"
+      [mode]="isMobile() ? 'over' : 'side'"
+      [opened]="!isMobile()"
+      aria-label="Primary navigation"
+    >
+      <nav>
+        <mat-nav-list>
+          @for (item of navigation; track item.route) {
+            <a
+              mat-list-item
+              [routerLink]="item.route"
+              routerLinkActive="active"
+              (click)="closeMobileNavigation(drawer)"
+            >
+              <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+              <span matListItemTitle>{{ item.label }}</span>
+            </a>
+          }
+        </mat-nav-list>
+      </nav>
+      <p class="sidenav-note">Synthetic data only</p>
+    </mat-sidenav>
+
+    <mat-sidenav-content>
+      <main><router-outlet /></main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

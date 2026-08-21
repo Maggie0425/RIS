@@ -1,0 +1,141 @@
+:host,
+.shell {
+  display: block;
+  height: 100vh;
+}
+
+.shell {
+  box-sizing: border-box;
+}
+
+.toolbar {
+  background: linear-gradient(110deg, #333 0%, var(--ris-brand-charcoal) 58%, #353a42 100%);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 18%);
+  color: #fff;
+  gap: 0.85rem;
+  height: 60px;
+  padding-inline: 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.toolbar button {
+  color: #fff;
+  margin-right: 0.15rem;
+}
+
+.toolbar button:hover {
+  background: rgb(255 255 255 / 10%);
+}
+
+.brand {
+  align-items: center;
+  color: inherit;
+  display: flex;
+  gap: 0.65rem;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.brand-name {
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brand img {
+  height: 32px;
+  width: 32px;
+}
+
+.brand-divider {
+  background: var(--ris-brand-orange);
+  border-radius: 2px;
+  height: 22px;
+  width: 2px;
+}
+
+.workspace {
+  background:
+    radial-gradient(circle at 95% 0%, rgb(21 101 192 / 6%), transparent 28rem),
+    var(--ris-page-background);
+  height: calc(100vh - 60px);
+}
+
+.sidenav {
+  background: var(--ris-surface);
+  border-radius: 0;
+  border-right: 1px solid var(--ris-border);
+  width: 248px;
+}
+
+.sidenav nav {
+  padding: 0.75rem;
+}
+
+.sidenav a {
+  border-radius: 0 10px 10px 0;
+  color: var(--ris-text-secondary);
+  margin-bottom: 0.25rem;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    transform 120ms ease;
+}
+
+.sidenav a:hover {
+  background: rgb(21 101 192 / 7%);
+  color: var(--ris-text-primary);
+  transform: translateX(2px);
+}
+
+.sidenav a.active {
+  background: #e8f0fe;
+  box-shadow: inset 4px 0 0 var(--mat-sys-primary);
+  color: var(--mat-sys-primary);
+  font-weight: 600;
+}
+
+.sidenav a.active mat-icon {
+  color: var(--mat-sys-primary);
+}
+
+.sidenav-note {
+  bottom: 0;
+  color: var(--ris-text-secondary);
+  font: var(--mat-sys-label-medium);
+  margin: 1rem 1.5rem;
+  position: absolute;
+}
+
+main {
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 1440px;
+  min-height: 100%;
+  padding: 2.25rem 2rem 4rem;
+}
+
+@media (max-width: 959px) {
+  main {
+    padding: 1.5rem 1rem 3rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .workspace {
+    height: calc(100vh - 60px);
+  }
+
+  .toolbar {
+    height: 60px;
+    padding-inline: 0.5rem;
+  }
+
+  .brand-name {
+    font-size: 0.95rem;
+  }
+}
