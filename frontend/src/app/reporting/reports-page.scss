@@ -1,0 +1,375 @@
+:host {
+  display: block;
+}
+
+.page-header {
+  margin-bottom: 1rem;
+}
+
+.eyebrow {
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-large);
+  letter-spacing: 0.04em;
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+}
+
+h1 {
+  font: var(--mat-sys-headline-medium);
+  margin: 0 0 0.25rem;
+}
+
+.page-header > div > p:last-child,
+.queue-heading p,
+.report-heading p,
+.section-heading p {
+  color: var(--ris-text-secondary);
+  margin: 0;
+}
+
+.implementation-note {
+  align-items: flex-start;
+  background: #eaf2ff;
+  border: 1px solid #b8d0fa;
+  border-radius: 12px;
+  color: #173d70;
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.875rem 1rem;
+}
+
+.implementation-note div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.implementation-note span {
+  font: var(--mat-sys-body-small);
+}
+
+.summary-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: 1rem;
+}
+
+.summary-grid mat-card-content {
+  align-items: center;
+  display: flex;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.summary-grid mat-icon {
+  background: #e8f0fe;
+  border-radius: 50%;
+  color: var(--mat-sys-primary);
+  padding: 0.65rem;
+}
+
+.summary-grid div {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-grid strong {
+  font: var(--mat-sys-headline-small);
+}
+
+.summary-grid span {
+  color: var(--ris-text-secondary);
+  font: var(--mat-sys-label-medium);
+}
+
+.report-layout {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(360px, 0.8fr) minmax(480px, 1.2fr);
+}
+
+.queue-card,
+.report-card {
+  overflow: hidden;
+}
+
+.queue-heading,
+.report-heading {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  padding: 1.25rem;
+}
+
+.queue-heading h2,
+.report-heading h2,
+.section-heading h3 {
+  margin: 0;
+}
+
+.status-filter {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0 1.25rem 1rem;
+}
+
+.search-field {
+  box-sizing: border-box;
+  padding: 0 1.25rem 1rem;
+  width: 100%;
+}
+
+.exam-list {
+  border-top: 1px solid var(--ris-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.exam-row {
+  align-items: center;
+  background: white;
+  border: 0;
+  border-bottom: 1px solid var(--ris-border);
+  color: var(--ris-text-primary);
+  cursor: pointer;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 1rem 1.25rem;
+  text-align: left;
+}
+
+.exam-row:hover,
+.exam-row.selected {
+  background: #eef4ff;
+}
+
+.exam-row.selected {
+  box-shadow: inset 4px 0 0 var(--mat-sys-primary);
+}
+
+.exam-main,
+.row-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.exam-main strong,
+.exam-main small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exam-main small,
+.row-meta small {
+  color: var(--ris-text-secondary);
+  font: var(--mat-sys-body-small);
+}
+
+.row-meta {
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.modality {
+  background: #e8f0fe;
+  border-radius: 8px;
+  color: #174f93;
+  font: var(--mat-sys-label-large);
+  font-weight: 700;
+  min-width: 38px;
+  padding: 0.55rem 0.45rem;
+  text-align: center;
+}
+
+.modality[data-modality='MR'] {
+  background: #f0e9ff;
+  color: #6236a6;
+}
+
+.modality[data-modality='US'] {
+  background: #fff1dd;
+  color: #965900;
+}
+
+.modality.large {
+  min-width: 54px;
+  padding: 0.7rem;
+}
+
+.status {
+  background: #fff3d9;
+  border-radius: 999px;
+  color: #795300;
+  font: var(--mat-sys-label-small);
+  font-weight: 700;
+  padding: 0.3rem 0.55rem;
+  white-space: nowrap;
+}
+
+.status[data-status='REPORTED'] {
+  background: #e8f0fe;
+  color: #174f93;
+}
+
+.status[data-status='COMPLETED'] {
+  background: #e7f5e9;
+  color: #216a31;
+}
+
+.exam-details {
+  border-bottom: 1px solid var(--ris-border);
+  border-top: 1px solid var(--ris-border);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0;
+  padding: 1rem 1.25rem;
+}
+
+.exam-details div {
+  min-width: 0;
+}
+
+dt {
+  color: var(--ris-text-secondary);
+  font: var(--mat-sys-label-medium);
+}
+
+dd {
+  font: var(--mat-sys-body-medium);
+  font-weight: 600;
+  margin: 0.15rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.report-editor,
+.submitted-report {
+  padding: 1.25rem;
+}
+
+.section-heading {
+  margin-bottom: 1rem;
+}
+
+.report-editor mat-form-field {
+  width: 100%;
+}
+
+.report-editor textarea {
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.editor-note,
+.completed-note {
+  align-items: center;
+  color: var(--ris-text-secondary);
+  display: flex;
+  font: var(--mat-sys-body-small);
+  gap: 0.4rem;
+}
+
+.editor-note mat-icon,
+.completed-note mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}
+
+.editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.editor-actions mat-spinner {
+  display: inline-block;
+  margin-right: 0.4rem;
+}
+
+.report-text {
+  background: #f8f9fb;
+  border: 1px solid var(--ris-border);
+  border-radius: 10px;
+  line-height: 1.65;
+  min-height: 180px;
+  padding: 1rem;
+  white-space: pre-wrap;
+}
+
+.completed-note {
+  color: #216a31;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+.state {
+  align-items: center;
+  color: var(--ris-text-secondary);
+  display: flex;
+  flex-direction: column;
+  padding: 4rem 1rem;
+  text-align: center;
+}
+
+.state.compact {
+  padding: 3rem 1rem;
+}
+
+.state > mat-icon {
+  font-size: 42px;
+  height: 42px;
+  width: 42px;
+}
+
+.state h2,
+.state h3 {
+  color: var(--ris-text-primary);
+  margin-bottom: 0;
+}
+
+.details-empty {
+  justify-content: center;
+  min-height: 360px;
+}
+
+.error-card {
+  border-color: var(--mat-sys-error);
+  color: var(--mat-sys-error);
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 1100px) {
+  .report-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .status-filter {
+    grid-template-columns: 1fr;
+  }
+
+  .exam-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .row-meta {
+    align-items: flex-start;
+    grid-column: 2;
+  }
+
+  .exam-details {
+    grid-template-columns: 1fr 1fr;
+  }
+}

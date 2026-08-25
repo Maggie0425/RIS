@@ -1,0 +1,278 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Radiology workflow</p>
+    <h1>Reports</h1>
+    <p>Author and review reports for synthetic patient examinations.</p>
+  </div>
+</header>
+
+<section class="implementation-note" aria-label="Reporting implementation status">
+  <mat-icon>info</mat-icon>
+  <div>
+    <strong>Prototype reporting data</strong>
+    <span>
+      The reporting API is still planned. Submitted mock reports last only until the page reloads.
+    </span>
+  </div>
+</section>
+
+@if (error()) {
+  <mat-card appearance="outlined" class="error-card" role="alert">
+    <mat-card-content>
+      {{ error() }}
+      <button mat-button type="button" (click)="load()">Try again</button>
+    </mat-card-content>
+  </mat-card>
+}
+
+@if (loading()) {
+  <div class="state">
+    <mat-spinner diameter="42" />
+    <p>Loading reporting examinations…</p>
+  </div>
+} @else if (!error()) {
+  <section class="summary-grid" aria-label="Reporting summary">
+    <mat-card appearance="outlined">
+      <mat-card-content>
+        <mat-icon>edit_note</mat-icon>
+        <div>
+          <strong>{{ needsReportCount() }}</strong
+          ><span>Needs report</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card appearance="outlined">
+      <mat-card-content>
+        <mat-icon>fact_check</mat-icon>
+        <div>
+          <strong>{{ submittedCount() }}</strong
+          ><span>Reported</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card appearance="outlined">
+      <mat-card-content>
+        <mat-icon>task_alt</mat-icon>
+        <div>
+          <strong>{{ completedCount() }}</strong
+          ><span>Completed</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <div class="report-layout">
+    <mat-card appearance="outlined" class="queue-card">
+      <div class="queue-heading">
+        <div>
+          <h2>Reporting queue</h2>
+          <p>{{ filteredExams().length }} examinations shown</p>
+        </div>
+      </div>
+
+      <mat-button-toggle-group
+        class="status-filter"
+        [value]="viewFilter()"
+        aria-label="Report status filter"
+      >
+        <mat-button-toggle value="NEEDS_REPORT" (click)="setViewFilter('NEEDS_REPORT')">
+          Needs report
+        </mat-button-toggle>
+        <mat-button-toggle value="SUBMITTED" (click)="setViewFilter('SUBMITTED')">
+          Reported
+        </mat-button-toggle>
+        <mat-button-toggle value="COMPLETED" (click)="setViewFilter('COMPLETED')">
+          Completed
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
+        <mat-label>Search reports</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          type="search"
+          [value]="searchTerm()"
+          placeholder="Patient, MRN or accession"
+          (input)="updateSearch($event)"
+        />
+        @if (searchTerm()) {
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            aria-label="Clear search"
+            (click)="clearSearch()"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      @if (filteredExams().length === 0) {
+        <div class="state compact">
+          <mat-icon>inbox</mat-icon>
+          <h3>No matching examinations</h3>
+          <p>Try another status or clear the search.</p>
+        </div>
+      } @else {
+        <div class="exam-list">
+          @for (exam of filteredExams(); track exam.id) {
+            <button
+              type="button"
+              class="exam-row"
+              [class.selected]="selectedExamId() === exam.id"
+              [attr.aria-label]="'Open ' + exam.accessionNumber + ' for ' + patientName(exam)"
+              (click)="selectExam(exam)"
+            >
+              <span class="modality" [attr.data-modality]="exam.modality">
+                {{ modalityLabel(exam) }}
+              </span>
+              <span class="exam-main">
+                <strong>{{ patientName(exam) }}</strong>
+                <small>{{ exam.requestedProcedure }}</small>
+                <small>{{ exam.patient.medicalRecordNumber }} · {{ exam.accessionNumber }}</small>
+              </span>
+              <span class="row-meta">
+                <span class="status" [attr.data-status]="exam.status">
+                  {{ statusLabel(exam.status) }}
+                </span>
+                <small>
+                  {{
+                    exam.report?.submittedAt ?? exam.schedule?.scheduledStart | date: 'd MMM, HH:mm'
+                  }}
+                </small>
+              </span>
+            </button>
+          }
+        </div>
+      }
+    </mat-card>
+
+    <mat-card appearance="outlined" class="report-card">
+      @if (selectedExam(); as exam) {
+        <div class="report-heading">
+          <div>
+            <span class="status" [attr.data-status]="exam.status">
+              {{ statusLabel(exam.status) }}
+            </span>
+            <h2>{{ exam.requestedProcedure }}</h2>
+            <p>{{ patientName(exam) }} · {{ exam.accessionNumber }}</p>
+          </div>
+          <span class="modality large" [attr.data-modality]="exam.modality">
+            {{ modalityLabel(exam) }}
+          </span>
+        </div>
+
+        <dl class="exam-details">
+          <div>
+            <dt>Patient</dt>
+            <dd>{{ patientName(exam) }}</dd>
+          </div>
+          <div>
+            <dt>MRN</dt>
+            <dd>{{ exam.patient.medicalRecordNumber }}</dd>
+          </div>
+          <div>
+            <dt>Accession</dt>
+            <dd>{{ exam.accessionNumber }}</dd>
+          </div>
+          <div>
+            <dt>Station</dt>
+            <dd>{{ exam.schedule?.stationAeTitle ?? '—' }}</dd>
+          </div>
+          <div>
+            <dt>Scheduled</dt>
+            <dd>{{ exam.schedule?.scheduledStart | date: 'd MMM yyyy, HH:mm' }}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{{ exam.status }}</dd>
+          </div>
+        </dl>
+
+        @if (exam.status === 'ACQUIRED') {
+          <form [formGroup]="reportForm" (ngSubmit)="submitReport(exam)" class="report-editor">
+            <div class="section-heading">
+              <div>
+                <h3>Report text</h3>
+                <p>Enter the radiology result as plain text.</p>
+              </div>
+            </div>
+            <mat-form-field appearance="outline">
+              <mat-label>Radiology report</mat-label>
+              <textarea
+                matInput
+                formControlName="reportText"
+                rows="12"
+                placeholder="Enter the examination findings and result…"
+              ></textarea>
+              <mat-hint>The authenticated user will become the report author.</mat-hint>
+              @if (
+                reportForm.controls.reportText.invalid && reportForm.controls.reportText.touched
+              ) {
+                <mat-error>Enter report text before submitting</mat-error>
+              }
+            </mat-form-field>
+            <div class="editor-note">
+              <mat-icon>lock</mat-icon>
+              Submitted reports are read-only in the initial system.
+            </div>
+            <div class="editor-actions">
+              <button mat-flat-button type="submit" [disabled]="saving()">
+                @if (saving()) {
+                  <mat-spinner diameter="20" />
+                } @else {
+                  <mat-icon>send</mat-icon>
+                }
+                Submit report
+              </button>
+            </div>
+          </form>
+        } @else if (exam.report; as report) {
+          <section class="submitted-report" aria-label="Submitted report">
+            <div class="section-heading">
+              <div>
+                <h3>Submitted report</h3>
+                <p>
+                  Submitted {{ report.submittedAt | date: 'd MMM yyyy, HH:mm' }} · Author user #{{
+                    report.authorUserId
+                  }}
+                </p>
+              </div>
+            </div>
+            <div class="report-text">{{ report.reportText }}</div>
+            @if (exam.status === 'REPORTED') {
+              <div class="editor-actions">
+                <button
+                  mat-flat-button
+                  type="button"
+                  [disabled]="saving()"
+                  (click)="completeExam(exam)"
+                >
+                  @if (saving()) {
+                    <mat-spinner diameter="20" />
+                  } @else {
+                    <mat-icon>task_alt</mat-icon>
+                  }
+                  Complete exam
+                </button>
+              </div>
+            } @else {
+              <div class="completed-note">
+                <mat-icon>verified</mat-icon>
+                Examination workflow completed
+              </div>
+            }
+          </section>
+        }
+      } @else {
+        <div class="state details-empty">
+          <mat-icon>description</mat-icon>
+          <h2>Select an examination</h2>
+          <p>Choose an item from the reporting queue to view its details.</p>
+        </div>
+      }
+    </mat-card>
+  </div>
+}
