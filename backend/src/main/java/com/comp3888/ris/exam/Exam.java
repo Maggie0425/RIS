@@ -48,6 +48,53 @@ class Exam {
     protected Exam() {
     }
 
+    static Exam createOrder(Long patientId, Long createdBy, String accessionNumber,
+            String requestedProcedure, Modality modality) {
+        Exam exam = new Exam();
+        exam.patientId = patientId;
+        exam.createdBy = createdBy;
+        exam.accessionNumber = accessionNumber;
+        exam.requestedProcedure = requestedProcedure;
+        exam.modality = modality;
+        exam.status = ExamStatus.ORDERED;
+
+        Instant now = Instant.now();
+        exam.createdAt = now;
+        exam.updatedAt = now;
+        return exam;
+    }
+
+    void markScheduled() {
+        transitionFrom(ExamStatus.ORDERED, ExamStatus.SCHEDULED);
+    }
+
+    void markAcquired() {
+        transitionFrom(ExamStatus.SCHEDULED, ExamStatus.ACQUIRED);
+    }
+
+    void markReported() {
+        transitionFrom(ExamStatus.ACQUIRED, ExamStatus.REPORTED);
+    }
+
+    void markCompleted() {
+        transitionFrom(ExamStatus.REPORTED, ExamStatus.COMPLETED);
+    }
+
+    private void transitionFrom(ExamStatus expectedStatus, ExamStatus targetStatus) {
+        if (status != expectedStatus) {
+            throw new InvalidExamTransitionException(status, targetStatus);
+        }
+
+        Instant transitionedAt = nextUpdatedAt();
+        status = targetStatus;
+        updatedAt = transitionedAt;
+    }
+
+    private Instant nextUpdatedAt() {
+        Instant now = Instant.now();
+        return now.isAfter(updatedAt) ? now : updatedAt.plusNanos(1);
+    }
+
     Long getId() {
         return id;
     }
@@ -84,4 +131,3 @@ class Exam {
         return updatedAt;
     }
 }
-

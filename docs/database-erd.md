@@ -62,7 +62,7 @@ erDiagram
         BIGINT created_by FK
         VARCHAR accession_number UK
         VARCHAR requested_procedure
-        VARCHAR modality
+        VARCHAR modality "CT, MR, DX, or US"
         VARCHAR status
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
@@ -86,5 +86,5 @@ erDiagram
     }
 ```
 
-`EXAM_SCHEDULES.exam_id` and `REPORTS.exam_id` are unique, enforcing at most one current schedule and one submitted report per exam. The backend remains responsible for lifecycle transitions and role-based permissions.
+`EXAMS.modality` is restricted by the named `chk_exams_modality` constraint to `CT`, `MR`, `DX`, or `US` so the database matches the backend `Modality` enum. `EXAM_SCHEDULES.exam_id` and `REPORTS.exam_id` are unique, enforcing at most one current schedule and one submitted report per exam. The backend remains responsible for lifecycle transitions and role-based permissions.
 
