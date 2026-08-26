@@ -9,6 +9,9 @@ export class PatientApi {
   list(): Observable<Patient[]> {
     return this.http.get<Patient[]>(this.url);
   }
+  get(id: number): Observable<Patient> {
+    return this.http.get<Patient>(`${this.url}/${id}`);
+  }
   create(request: PatientRequest): Observable<Patient> {
     return this.http.post<Patient>(this.url, request);
   }

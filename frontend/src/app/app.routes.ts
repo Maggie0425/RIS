@@ -24,6 +24,12 @@ export const routes: Routes = [
         title: 'Patients | RIS',
       },
       {
+        path: 'patients/:id',
+        loadComponent: () =>
+          import('./patients/patient-details-page').then((m) => m.PatientDetailsPage),
+        title: 'Patient details | RIS',
+      },
+      {
         path: 'exams',
         loadComponent: () => import('./exams/exams-page').then((component) => component.ExamsPage),
         title: 'Exams | RIS',
