@@ -40,3 +40,18 @@ Administration
 The shared skeleton owns the Material theme, application shell, responsive navigation, routing, and plain route placeholders. Feature teams own forms, tables, API integration, workflow actions, permissions, and feature-specific components.
 
 The existing patient page is retained as implemented feature work. Authentication guards and role-based menu filtering are added with the authentication feature, not simulated in the visual skeleton.
+
+## Dashboard implementation
+
+The Dashboard route is an implemented workflow overview rather than a placeholder. It requests `GET /api/dashboard/summary` on initial load and when the user selects **Refresh**.
+
+The page provides:
+
+- a total-examinations card and one card for each lifecycle status;
+- links from the total card to `/exams` and from each status card to `/exams?status=<STATUS>`;
+- a workflow-distribution view showing each status as a percentage of all examinations;
+- a loading indicator, retryable API error state, and first-use empty state;
+- the timestamp of the most recent successful refresh; and
+- responsive single-column cards on narrow screens.
+
+Status cards expose descriptive link labels, and distribution bars use progress-bar roles and values so the same workflow information is available to assistive technologies. Counts remain server-derived; the frontend does not infer workflow totals from locally loaded exam rows.

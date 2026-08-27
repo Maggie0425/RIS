@@ -86,6 +86,30 @@ Supported query parameters are `modality`, `scheduledDateFrom`, `scheduledDateTo
 
 Submitted reports are read-only in the initial version.
 
+## Dashboard
+
+| Method and path | Permission | Purpose |
+|---|---|---|
+| `GET /api/dashboard/summary` | `EXAM_READ` | Return the total exam count and counts grouped by every exam lifecycle status |
+
+The response contains `totalExams`, `ordered`, `scheduled`, `acquired`, `reported`, `completed`, and `cancelled` numeric fields. Counts are calculated from the current database state.
+
+Example response:
+
+```json
+{
+  "totalExams": 24,
+  "ordered": 3,
+  "scheduled": 6,
+  "acquired": 4,
+  "reported": 2,
+  "completed": 8,
+  "cancelled": 1
+}
+```
+
+The summary is read-only. The repository calculates all status counts in one grouped query, and the service fills absent lifecycle statuses with zero so the frontend always receives the complete response shape.
+
 ## User administration
 
 | Method and path | Permission | Purpose |

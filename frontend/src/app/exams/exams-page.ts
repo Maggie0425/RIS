@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -154,20 +154,22 @@ import { ExamApi } from './exam-api';
 })
 export class ExamsPage {
   private readonly api = inject(ExamApi);
+  private readonly route = inject(ActivatedRoute);
   readonly exams = signal<Exam[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly columns = ['accessionNumber', 'requestedProcedure', 'modality', 'status', 'createdAt', 'patient'];
   readonly statusLabel = examStatusLabel;
+  readonly selectedStatus = this.readStatusFilter();
 
   constructor() {
-    this.load();
+    this.load(this.selectedStatus);
   }
 
-  load(): void {
+  load(status: Exam['status'] | undefined = this.selectedStatus): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.list().subscribe({
+    this.api.list({ status }).subscribe({
       next: (exams) => {
         this.exams.set(exams);
         this.loading.set(false);
@@ -177,5 +179,18 @@ export class ExamsPage {
         this.loading.set(false);
       },
     });
+  }
+
+  private readStatusFilter(): Exam['status'] | undefined {
+    const status = this.route.snapshot.queryParamMap.get('status');
+    const allowed: Exam['status'][] = [
+      'ORDERED',
+      'SCHEDULED',
+      'ACQUIRED',
+      'REPORTED',
+      'COMPLETED',
+      'CANCELLED',
+    ];
+    return allowed.includes(status as Exam['status']) ? (status as Exam['status']) : undefined;
   }
 }
