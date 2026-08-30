@@ -1,6 +1,12 @@
 # REST API Design
 
-This document is the concise planning contract for frontend and backend work. Implemented request and response schemas are generated from Spring controller, DTO, validation, and OpenAPI annotations and exposed through Swagger UI.
+Status: **Target contract**, except for routes explicitly listed as
+**Implemented** below. Status labels and source authority are defined in
+[`README.md`](README.md).
+
+This document is the concise planning contract for frontend and backend work.
+Implemented request and response schemas are generated from Spring controller,
+DTO, validation, and OpenAPI annotations and exposed through Swagger UI.
 
 ## Generated API documentation
 
@@ -9,11 +15,27 @@ This document is the concise planning contract for frontend and backend work. Im
 
 These URLs are available while the backend is running locally.
 
+Generated OpenAPI is authoritative for implemented controllers. A route listed
+only in this document remains a target and must not be reported as implemented.
+
+## Current implementation
+
+- **Implemented:** `GET /api/status`.
+- **Implemented:** patient list/search, get, create, update, and temporary delete
+  routes under `/api/patients`.
+- **Implemented:** read-only examination listing with an optional exact status
+  filter at `GET /api/exams`.
+- **Implemented:** read-only workflow counts at `GET /api/dashboard/summary`.
+- **Target:** authentication, examination creation/details/lifecycle actions,
+  scheduling, worklist, reporting, and user-administration routes.
+- **Target:** JWT and permission enforcement on implemented routes; Spring
+  Security is not currently configured.
+
 ## Conventions
 
 - Base path: `/api`
 - Media type: `application/json`
-- Authentication: JWT bearer token except where marked public
+- Target authentication: JWT bearer token except where marked public
 - Identifiers: JSON numbers backed by database `BIGINT` values
 - Dates: ISO `YYYY-MM-DD`; timestamps: ISO 8601 with an offset or `Z`
 - List endpoints may gain pagination when required; the initial skeleton uses simple arrays.
@@ -35,14 +57,14 @@ Errors use the existing shape:
 
 Common responses are `400` invalid request, `401` unauthenticated, `403` unauthorized, `404` missing resource, and `409` duplicate data or invalid workflow state.
 
-## Authentication
+## Authentication — Target
 
 | Method and path | Access | Purpose |
 |---|---|---|
 | `POST /api/auth/login` | Public | Exchange username and password for a short-lived JWT and current user details |
 | `GET /api/auth/me` | Authenticated | Return the current user, roles, and permissions |
 
-## Patients
+## Patients — Implemented API, Target authorization
 
 | Method and path | Permission | Purpose |
 |---|---|---|
@@ -53,11 +75,11 @@ Common responses are `400` invalid request, `401` unauthenticated, `403` unautho
 
 Patient writes contain `medicalRecordNumber`, `firstName`, `lastName`, `dateOfBirth`, and `sex`. The existing `DELETE /api/patients/{id}` endpoint is not part of the target contract because clinical records should be retained; the team should remove it or explicitly approve deletion behavior before release.
 
-## Exams and lifecycle
+## Exams and lifecycle — Implemented listing, remaining routes Target
 
 | Method and path | Permission | Purpose and lifecycle effect |
 |---|---|---|
-| `GET /api/exams` | `EXAM_READ` | List exams, optionally filtered by patient or status |
+| `GET /api/exams` | `EXAM_READ` | **Implemented:** list all exams newest-first, optionally filtered by exact status |
 | `GET /api/exams/{id}` | `EXAM_READ` | Get an exam with its schedule and report summary |
 | `POST /api/exams` | `ORDER_CREATE` | Create an exam in `ORDERED` |
 | `PUT /api/exams/{id}/schedule` | `SCHEDULE_MANAGE` | Create or update the schedule; first scheduling changes `ORDERED -> SCHEDULED` |
@@ -70,7 +92,7 @@ Exam creation contains `patientId`, `requestedProcedure`, and `modality`; the ba
 
 Transition actions are idempotent only if explicitly implemented that way. Otherwise, a repeated or invalid transition returns `409 Conflict`, including for `ADMIN`.
 
-## REST worklist
+## REST worklist — Target
 
 | Method and path | Permission | Purpose |
 |---|---|---|
@@ -78,7 +100,7 @@ Transition actions are idempotent only if explicitly implemented that way. Other
 
 Supported query parameters are `modality`, `scheduledDateFrom`, `scheduledDateTo`, and `stationAeTitle`. Cancelled exams are excluded. This REST endpoint does not replace the separate DICOM MWL C-FIND interface.
 
-## Reports
+## Reports — Target
 
 | Method and path | Permission | Purpose |
 |---|---|---|
@@ -86,7 +108,7 @@ Supported query parameters are `modality`, `scheduledDateFrom`, `scheduledDateTo
 
 Submitted reports are read-only in the initial version.
 
-## Dashboard
+## Dashboard — Implemented API, Target authorization
 
 | Method and path | Permission | Purpose |
 |---|---|---|
@@ -108,9 +130,13 @@ Example response:
 }
 ```
 
-The summary is read-only. The repository calculates all status counts in one grouped query, and the service fills absent lifecycle statuses with zero so the frontend always receives the complete response shape.
+The summary is read-only. The repository calculates all status counts in one
+grouped query, and the service fills absent lifecycle statuses with zero so the
+frontend always receives the complete response shape. The controller documents
+`EXAM_READ` as the target permission, but authentication and authorization are
+not yet enforced.
 
-## User administration
+## User administration — Target
 
 | Method and path | Permission | Purpose |
 |---|---|---|

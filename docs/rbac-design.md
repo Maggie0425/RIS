@@ -1,8 +1,15 @@
 # Database-Backed RBAC Design
 
-The RIS uses database-backed role-based access control (RBAC). Administrators assign fixed roles to users; custom role or permission editing is outside the core scope.
+Status: **Target authorization design** with **Implemented** database tables,
+JPA entities, fixed-role seed data, and permission mappings. Spring Security,
+login/JWT handling, and API enforcement are not yet implemented. Status labels
+and source authority are defined in [`README.md`](README.md).
 
-## Data model
+The target RIS uses database-backed role-based access control (RBAC).
+Administrators assign fixed roles to users; custom role or permission editing
+is outside the core scope.
+
+## Data model — Implemented foundation
 
 ```text
 users --< user_roles >-- roles --< role_permissions >-- permissions
@@ -18,7 +25,7 @@ users --< user_roles >-- roles --< role_permissions >-- permissions
 
 Users and roles referenced by historical records must be disabled rather than deleted. BCrypt hashes are stored in `users.password_hash`; plaintext passwords are never stored.
 
-## Fixed roles and permissions
+## Fixed roles and permissions — Implemented seed mapping
 
 | Permission | Receptionist | Technologist | Radiologist | Admin |
 |---|:---:|:---:|:---:|:---:|
@@ -38,20 +45,21 @@ Users and roles referenced by historical records must be disabled rather than de
 
 `ADMIN` receives every permission. A user may have multiple roles, and their effective permissions are the union of those roles.
 
-## Enforcement rules
+## Enforcement rules — Target
 
-- Flyway creates the five tables and seeds the fixed roles, permissions, mappings, and synthetic demo accounts.
+- **Implemented:** Flyway creates the five tables and seeds the fixed roles,
+  permissions, mappings, and synthetic demo accounts.
 - Spring Security authenticates enabled users and checks permissions at the API/service boundary.
 - Workflow permission and lifecycle checks both apply; having permission never allows an invalid status transition.
 - Administrators may create or disable users, reset passwords, and assign or remove fixed roles.
 - The system must prevent disabling the last enabled administrator or removing their final `ADMIN` role.
 - The DICOM MWL endpoint uses its own DICOM association controls and does not use staff JWT roles.
 
-## JWT behavior
+## JWT behaviour — Target
 
 On login, the backend issues a short-lived JWT containing the user identifier, username, roles, and permissions. Role changes, account disabling, and password resets take full effect no later than token expiry; the initial implementation should use a 15-minute access-token lifetime and require login again rather than implement refresh tokens.
 
-## Minimum tests
+## Minimum tests — Target
 
 - Each operational role can perform its allowed actions and receives `403 Forbidden` for disallowed actions.
 - An administrator can perform all workflow and user-management actions.
