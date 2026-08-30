@@ -54,7 +54,7 @@ class Exam {
         exam.patientId = patientId;
         exam.createdBy = createdBy;
         exam.accessionNumber = accessionNumber;
-        exam.requestedProcedure = requestedProcedure;
+        exam.requestedProcedure = requestedProcedure.trim();
         exam.modality = modality;
         exam.status = ExamStatus.ORDERED;
 

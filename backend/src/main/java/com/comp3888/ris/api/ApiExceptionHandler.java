@@ -10,14 +10,15 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.comp3888.ris.exam.ExamNotFoundException;
 import com.comp3888.ris.patient.DuplicateMedicalRecordNumberException;
 import com.comp3888.ris.patient.PatientNotFoundException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
-    @ExceptionHandler(PatientNotFoundException.class)
-    ResponseEntity<ApiErrorResponse> handleNotFound(PatientNotFoundException exception) {
+    @ExceptionHandler({ PatientNotFoundException.class, ExamNotFoundException.class })
+    ResponseEntity<ApiErrorResponse> handleNotFound(RuntimeException exception) {
         return error(HttpStatus.NOT_FOUND, exception.getMessage(), Map.of());
     }
 
