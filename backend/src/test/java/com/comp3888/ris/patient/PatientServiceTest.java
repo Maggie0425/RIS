@@ -89,7 +89,7 @@ class PatientServiceTest {
         assertEquals("Avery", savedPatient.getFirstName());
         assertEquals("Taylor", savedPatient.getLastName());
 
-        
+
         verify(repository).existsByMedicalRecordNumber("SYN-000010");
     }
 

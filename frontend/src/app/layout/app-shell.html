@@ -1,13 +1,32 @@
 <div class="shell">
   <mat-toolbar class="toolbar">
     <button mat-icon-button type="button" aria-label="Toggle navigation" (click)="drawer.toggle()">
-      <mat-icon>menu</mat-icon>
+      <mat-icon svgIcon="menu"></mat-icon>
     </button>
     <a class="brand" routerLink="/dashboard" aria-label="RIS dashboard">
       <img src="favicon.svg" alt="" />
       <span class="brand-divider" aria-hidden="true"></span>
       <span class="brand-name">Radiology Information System</span>
     </a>
+    <span class="toolbar-spacer"></span>
+    @if (currentUser(); as user) {
+      <div class="user-summary" aria-label="Signed-in user">
+        <mat-icon svgIcon="account_circle"></mat-icon>
+        <span class="user-details">
+          <strong>{{ user.displayName }}</strong>
+          <small>{{ roleLabel() }}</small>
+        </span>
+      </div>
+      <button
+        mat-icon-button
+        type="button"
+        matTooltip="Sign out"
+        aria-label="Sign out"
+        (click)="logout()"
+      >
+        <mat-icon svgIcon="logout"></mat-icon>
+      </button>
+    }
   </mat-toolbar>
 
   <mat-sidenav-container class="workspace">
@@ -20,14 +39,14 @@
     >
       <nav>
         <mat-nav-list>
-          @for (item of navigation; track item.route) {
+          @for (item of navigation(); track item.route) {
             <a
               mat-list-item
               [routerLink]="item.route"
               routerLinkActive="active"
               (click)="closeMobileNavigation(drawer)"
             >
-              <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+              <mat-icon matListItemIcon [svgIcon]="item.icon"></mat-icon>
               <span matListItemTitle>{{ item.label }}</span>
             </a>
           }

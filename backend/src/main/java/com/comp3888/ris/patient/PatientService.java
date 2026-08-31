@@ -64,12 +64,6 @@ public class PatientService {
         return toResponse(save(patient, medicalRecordNumber));
     }
 
-    @Transactional
-    public void deletePatient(Long id) {
-        Patient patient = findPatient(id);
-        repository.delete(patient);
-    }
-
     private Patient findPatient(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new PatientNotFoundException(id));

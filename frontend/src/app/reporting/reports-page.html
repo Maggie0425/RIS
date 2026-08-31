@@ -7,7 +7,7 @@
 </header>
 
 <section class="implementation-note" aria-label="Reporting implementation status">
-  <mat-icon>info</mat-icon>
+  <mat-icon svgIcon="info"></mat-icon>
   <div>
     <strong>Prototype reporting data</strong>
     <span>
@@ -34,7 +34,7 @@
   <section class="summary-grid" aria-label="Reporting summary">
     <mat-card appearance="outlined">
       <mat-card-content>
-        <mat-icon>edit_note</mat-icon>
+        <mat-icon svgIcon="edit_note"></mat-icon>
         <div>
           <strong>{{ needsReportCount() }}</strong
           ><span>Needs report</span>
@@ -43,7 +43,7 @@
     </mat-card>
     <mat-card appearance="outlined">
       <mat-card-content>
-        <mat-icon>fact_check</mat-icon>
+        <mat-icon svgIcon="fact_check"></mat-icon>
         <div>
           <strong>{{ submittedCount() }}</strong
           ><span>Reported</span>
@@ -52,7 +52,7 @@
     </mat-card>
     <mat-card appearance="outlined">
       <mat-card-content>
-        <mat-icon>task_alt</mat-icon>
+        <mat-icon svgIcon="task_alt"></mat-icon>
         <div>
           <strong>{{ completedCount() }}</strong
           ><span>Completed</span>
@@ -88,7 +88,7 @@
 
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
         <mat-label>Search reports</mat-label>
-        <mat-icon matPrefix>search</mat-icon>
+        <mat-icon matPrefix svgIcon="search"></mat-icon>
         <input
           matInput
           type="search"
@@ -104,14 +104,14 @@
             aria-label="Clear search"
             (click)="clearSearch()"
           >
-            <mat-icon>close</mat-icon>
+            <mat-icon svgIcon="close"></mat-icon>
           </button>
         }
       </mat-form-field>
 
       @if (filteredExams().length === 0) {
         <div class="state compact">
-          <mat-icon>inbox</mat-icon>
+          <mat-icon svgIcon="inbox"></mat-icon>
           <h3>No matching examinations</h3>
           <p>Try another status or clear the search.</p>
         </div>
@@ -192,43 +192,50 @@
         </dl>
 
         @if (exam.status === 'ACQUIRED') {
-          <form [formGroup]="reportForm" (ngSubmit)="submitReport(exam)" class="report-editor">
-            <div class="section-heading">
-              <div>
-                <h3>Report text</h3>
-                <p>Enter the radiology result as plain text.</p>
+          @if (canSubmitReport()) {
+            <form [formGroup]="reportForm" (ngSubmit)="submitReport(exam)" class="report-editor">
+              <div class="section-heading">
+                <div>
+                  <h3>Report text</h3>
+                  <p>Enter the radiology result as plain text.</p>
+                </div>
               </div>
-            </div>
-            <mat-form-field appearance="outline">
-              <mat-label>Radiology report</mat-label>
-              <textarea
-                matInput
-                formControlName="reportText"
-                rows="12"
-                placeholder="Enter the examination findings and result…"
-              ></textarea>
-              <mat-hint>The authenticated user will become the report author.</mat-hint>
-              @if (
-                reportForm.controls.reportText.invalid && reportForm.controls.reportText.touched
-              ) {
-                <mat-error>Enter report text before submitting</mat-error>
-              }
-            </mat-form-field>
-            <div class="editor-note">
-              <mat-icon>lock</mat-icon>
-              Submitted reports are read-only in the initial system.
-            </div>
-            <div class="editor-actions">
-              <button mat-flat-button type="submit" [disabled]="saving()">
-                @if (saving()) {
-                  <mat-spinner diameter="20" />
-                } @else {
-                  <mat-icon>send</mat-icon>
+              <mat-form-field appearance="outline">
+                <mat-label>Radiology report</mat-label>
+                <textarea
+                  matInput
+                  formControlName="reportText"
+                  rows="12"
+                  placeholder="Enter the examination findings and result…"
+                ></textarea>
+                <mat-hint>The authenticated user will become the report author.</mat-hint>
+                @if (
+                  reportForm.controls.reportText.invalid && reportForm.controls.reportText.touched
+                ) {
+                  <mat-error>Enter report text before submitting</mat-error>
                 }
-                Submit report
-              </button>
+              </mat-form-field>
+              <div class="editor-note">
+                <mat-icon svgIcon="lock"></mat-icon>
+                Submitted reports are read-only in the initial system.
+              </div>
+              <div class="editor-actions">
+                <button mat-flat-button type="submit" [disabled]="saving()">
+                  @if (saving()) {
+                    <mat-spinner diameter="20" />
+                  } @else {
+                    <mat-icon svgIcon="send"></mat-icon>
+                  }
+                  Submit report
+                </button>
+              </div>
+            </form>
+          } @else {
+            <div class="permission-note">
+              <mat-icon svgIcon="lock"></mat-icon>
+              You can view this examination, but your account cannot submit reports.
             </div>
-          </form>
+          }
         } @else if (exam.report; as report) {
           <section class="submitted-report" aria-label="Submitted report">
             <div class="section-heading">
@@ -242,7 +249,7 @@
               </div>
             </div>
             <div class="report-text">{{ report.reportText }}</div>
-            @if (exam.status === 'REPORTED') {
+            @if (exam.status === 'REPORTED' && canCompleteExam()) {
               <div class="editor-actions">
                 <button
                   mat-flat-button
@@ -253,14 +260,14 @@
                   @if (saving()) {
                     <mat-spinner diameter="20" />
                   } @else {
-                    <mat-icon>task_alt</mat-icon>
+                    <mat-icon svgIcon="task_alt"></mat-icon>
                   }
                   Complete exam
                 </button>
               </div>
             } @else {
               <div class="completed-note">
-                <mat-icon>verified</mat-icon>
+                <mat-icon svgIcon="verified"></mat-icon>
                 Examination workflow completed
               </div>
             }
@@ -268,7 +275,7 @@
         }
       } @else {
         <div class="state details-empty">
-          <mat-icon>description</mat-icon>
+          <mat-icon svgIcon="description"></mat-icon>
           <h2>Select an examination</h2>
           <p>Choose an item from the reporting queue to view its details.</p>
         </div>

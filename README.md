@@ -59,6 +59,10 @@ docker compose up --build
 
 The first build downloads the Java, Node.js, Nginx, PostgreSQL, and pgAdmin images and may take several minutes. Later builds reuse Docker's cache.
 
+For repeatable logins, set `RIS_JWT_SECRET` in `.env` to a private random value of at least 32 characters. If it is left blank, the backend generates a temporary key and existing login tokens become invalid whenever the backend restarts.
+
+The synthetic accounts use `ris-demo-password` for local development and demonstrations only. Disable them or replace their credentials before deploying the system outside the synthetic demo environment.
+
 When all services are running:
 
 - Open `http://localhost:4200`.

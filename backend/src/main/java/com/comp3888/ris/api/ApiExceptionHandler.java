@@ -6,6 +6,7 @@ import java.util.TreeMap;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -16,6 +17,11 @@ import com.comp3888.ris.patient.PatientNotFoundException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    @ExceptionHandler(AuthenticationException.class)
+    ResponseEntity<ApiErrorResponse> handleAuthentication(AuthenticationException exception) {
+        return error(HttpStatus.UNAUTHORIZED, "Invalid username or password.", Map.of());
+    }
 
     @ExceptionHandler({ PatientNotFoundException.class, ExamNotFoundException.class })
     ResponseEntity<ApiErrorResponse> handleNotFound(RuntimeException exception) {

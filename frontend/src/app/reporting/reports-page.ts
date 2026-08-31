@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { AuthSession } from '../authentication/auth-session';
 import { ReportActionDialog } from './report-action-dialog';
 import {
   ReportViewFilter,
@@ -41,6 +42,7 @@ export class ReportsPage {
   private readonly api = inject(ReportsApi);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly session = inject(AuthSession);
 
   readonly exams = signal<ReportingExamView[]>([]);
   readonly loading = signal(true);
@@ -49,6 +51,8 @@ export class ReportsPage {
   readonly selectedExamId = signal<number | null>(null);
   readonly viewFilter = signal<ReportViewFilter>('NEEDS_REPORT');
   readonly searchTerm = signal('');
+  readonly canSubmitReport = computed(() => this.session.hasPermission('REPORT_WRITE'));
+  readonly canCompleteExam = computed(() => this.session.hasPermission('EXAM_COMPLETE'));
 
   readonly reportForm = new FormGroup({
     reportText: new FormControl('', {
@@ -133,6 +137,7 @@ export class ReportsPage {
   }
 
   submitReport(exam: ReportingExamView): void {
+    if (!this.canSubmitReport()) return;
     if (this.reportForm.invalid) {
       this.reportForm.markAllAsTouched();
       return;
@@ -164,6 +169,7 @@ export class ReportsPage {
   }
 
   completeExam(exam: ReportingExamView): void {
+    if (!this.canCompleteExam()) return;
     this.openConfirmation('COMPLETE', exam, () => {
       this.saving.set(true);
       this.api.completeExam(exam.id).subscribe({

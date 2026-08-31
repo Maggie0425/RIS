@@ -1,10 +1,13 @@
 import { TestBed } from '@angular/core/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { localDateKey } from './schedule';
 import { WorklistPage } from './worklist-page';
 
 describe('WorklistPage', () => {
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [WorklistPage] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [WorklistPage, MatIconTestingModule],
+    }).compileComponents();
   });
 
   it('loads the calendar and ordered-exam queue', async () => {

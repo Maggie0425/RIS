@@ -18,7 +18,4 @@ export class PatientApi {
   update(id: number, request: PatientRequest): Observable<Patient> {
     return this.http.put<Patient>(`${this.url}/${id}`, request);
   }
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.url}/${id}`);
-  }
 }

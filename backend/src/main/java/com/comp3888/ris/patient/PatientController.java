@@ -4,8 +4,8 @@ import java.net.URI;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,6 +33,7 @@ public class PatientController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('PATIENT_READ')")
     @Operation(summary = "List patients")
     @ApiResponse(responseCode = "200", description = "Patients returned")
     public List<PatientResponse> getPatients() {
@@ -40,6 +41,7 @@ public class PatientController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('PATIENT_READ')")
     @Operation(summary = "Get a patient")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Patient returned"),
@@ -50,6 +52,7 @@ public class PatientController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('PATIENT_WRITE')")
     @Operation(summary = "Register a synthetic patient")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Patient created"),
@@ -64,6 +67,7 @@ public class PatientController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('PATIENT_WRITE')")
     @Operation(summary = "Update a patient")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Patient updated"),
@@ -76,17 +80,4 @@ public class PatientController {
         return service.updatePatient(id, request);
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(
-            summary = "Delete a patient",
-            description = "Temporary endpoint pending the project decision on clinical record retention.",
-            deprecated = true)
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Patient deleted"),
-            @ApiResponse(responseCode = "404", description = "Patient not found")
-    })
-    public ResponseEntity<Void> deletePatient(@PathVariable Long id) {
-        service.deletePatient(id);
-        return ResponseEntity.noContent().build();
-    }
 }

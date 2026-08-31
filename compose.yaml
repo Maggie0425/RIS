@@ -30,6 +30,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-ris}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-ris}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-ris_dev_password}
+      RIS_JWT_SECRET: ${RIS_JWT_SECRET:-}
+      RIS_JWT_ISSUER: ${RIS_JWT_ISSUER:-ris-backend}
     ports:
       - "8080:8080"
     depends_on:

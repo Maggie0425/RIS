@@ -282,6 +282,17 @@ dd {
   width: 18px;
 }
 
+.permission-note {
+  align-items: center;
+  background: #f5f5f5;
+  border-radius: 10px;
+  color: var(--ris-text-secondary);
+  display: flex;
+  gap: 0.65rem;
+  margin: 1.25rem;
+  padding: 1rem;
+}
+
 .editor-actions {
   display: flex;
   justify-content: flex-end;

@@ -9,6 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { AuthSession } from '../authentication/auth-session';
 import { CancelExamDialog } from './cancel-exam-dialog';
 import { ScheduleApi } from './schedule-api';
 import { ScheduleFormDialog } from './schedule-form-dialog';
@@ -47,19 +48,21 @@ interface TimeSlot {
         <h1>Worklist</h1>
         <p>Schedule, reschedule and cancel synthetic patient examinations.</p>
       </div>
-      <button
-        mat-flat-button
-        type="button"
-        [disabled]="orderedExams().length === 0"
-        (click)="openSchedule()"
-      >
-        <mat-icon>add</mat-icon>
-        Schedule exam
-      </button>
+      @if (canSchedule()) {
+        <button
+          mat-flat-button
+          type="button"
+          [disabled]="orderedExams().length === 0"
+          (click)="openSchedule()"
+        >
+          <mat-icon svgIcon="add"></mat-icon>
+          Schedule exam
+        </button>
+      }
     </header>
 
     <section class="implementation-note" aria-label="Scheduling implementation status">
-      <mat-icon>info</mat-icon>
+      <mat-icon svgIcon="info"></mat-icon>
       <div>
         <strong>Prototype scheduling data</strong>
         <span>
@@ -94,11 +97,11 @@ interface TimeSlot {
                 matTooltip="Previous week"
                 (click)="moveWeek(-1)"
               >
-                <mat-icon>chevron_left</mat-icon>
+                <mat-icon svgIcon="chevron_left"></mat-icon>
               </button>
               <button mat-stroked-button type="button" (click)="goToToday()">Today</button>
               <button mat-icon-button type="button" matTooltip="Next week" (click)="moveWeek(1)">
-                <mat-icon>chevron_right</mat-icon>
+                <mat-icon svgIcon="chevron_right"></mat-icon>
               </button>
               <h2>{{ weekLabel() }}</h2>
             </div>
@@ -181,7 +184,7 @@ interface TimeSlot {
                         <span class="station">{{ exam.schedule?.stationAeTitle }}</span>
                       </button>
                     }
-                  } @else if (!slot.isPast && orderedExams().length > 0) {
+                  } @else if (canSchedule() && !slot.isPast && orderedExams().length > 0) {
                     <button
                       mat-button
                       type="button"
@@ -189,7 +192,7 @@ interface TimeSlot {
                       [attr.aria-label]="'Schedule an exam at ' + slot.label"
                       (click)="openSchedule(null, selectedDate(), slot.time)"
                     >
-                      <mat-icon>add</mat-icon>
+                      <mat-icon svgIcon="add"></mat-icon>
                       Choose {{ slot.label }}
                     </button>
                   } @else {
@@ -205,7 +208,7 @@ interface TimeSlot {
           <mat-card appearance="outlined" class="details-card">
             @if (selectedExam(); as exam) {
               <mat-card-header>
-                <mat-icon mat-card-avatar>event</mat-icon>
+                <mat-icon mat-card-avatar svgIcon="event"></mat-icon>
                 <mat-card-title>Appointment details</mat-card-title>
                 <mat-card-subtitle>{{ exam.accessionNumber }}</mat-card-subtitle>
               </mat-card-header>
@@ -238,24 +241,30 @@ interface TimeSlot {
                   </div>
                 </dl>
               </mat-card-content>
-              <mat-card-actions align="end">
-                <button mat-button type="button" (click)="openSchedule(exam)">
-                  <mat-icon>edit_calendar</mat-icon>
-                  Reschedule
-                </button>
-                <button
-                  mat-button
-                  type="button"
-                  class="cancel-action"
-                  (click)="confirmCancel(exam)"
-                >
-                  <mat-icon>event_busy</mat-icon>
-                  Cancel
-                </button>
-              </mat-card-actions>
+              @if (canSchedule() || canCancel()) {
+                <mat-card-actions align="end">
+                  @if (canSchedule()) {
+                    <button mat-button type="button" (click)="openSchedule(exam)">
+                      <mat-icon svgIcon="edit_calendar"></mat-icon>
+                      Reschedule
+                    </button>
+                  }
+                  @if (canCancel()) {
+                    <button
+                      mat-button
+                      type="button"
+                      class="cancel-action"
+                      (click)="confirmCancel(exam)"
+                    >
+                      <mat-icon svgIcon="event_busy"></mat-icon>
+                      Cancel
+                    </button>
+                  }
+                </mat-card-actions>
+              }
             } @else {
               <mat-card-content class="details-empty">
-                <mat-icon>touch_app</mat-icon>
+                <mat-icon svgIcon="touch_app"></mat-icon>
                 <h3>Appointment details</h3>
                 <p>Select a scheduled exam in the calendar to view or change it.</p>
               </mat-card-content>
@@ -264,14 +273,14 @@ interface TimeSlot {
 
           <mat-card appearance="outlined" class="orders-card">
             <mat-card-header>
-              <mat-icon mat-card-avatar>pending_actions</mat-icon>
+              <mat-icon mat-card-avatar svgIcon="pending_actions"></mat-icon>
               <mat-card-title>Waiting to schedule</mat-card-title>
               <mat-card-subtitle>{{ orderedExams().length }} exam orders</mat-card-subtitle>
             </mat-card-header>
             <mat-card-content>
               @if (orderedExams().length === 0) {
                 <div class="queue-empty">
-                  <mat-icon>check_circle</mat-icon>
+                  <mat-icon svgIcon="check_circle"></mat-icon>
                   <p>All current exam orders are scheduled.</p>
                 </div>
               } @else {
@@ -284,20 +293,26 @@ interface TimeSlot {
                         <small>{{ exam.requestedProcedure }}</small>
                         <small>{{ exam.accessionNumber }}</small>
                       </div>
-                      <div class="order-actions">
-                        <button mat-button type="button" (click)="openSchedule(exam)">
-                          Schedule
-                        </button>
-                        <button
-                          mat-icon-button
-                          type="button"
-                          matTooltip="Cancel exam order"
-                          [attr.aria-label]="'Cancel exam order for ' + patientLabel(exam)"
-                          (click)="confirmCancel(exam)"
-                        >
-                          <mat-icon>close</mat-icon>
-                        </button>
-                      </div>
+                      @if (canSchedule() || canCancel()) {
+                        <div class="order-actions">
+                          @if (canSchedule()) {
+                            <button mat-button type="button" (click)="openSchedule(exam)">
+                              Schedule
+                            </button>
+                          }
+                          @if (canCancel()) {
+                            <button
+                              mat-icon-button
+                              type="button"
+                              matTooltip="Cancel exam order"
+                              [attr.aria-label]="'Cancel exam order for ' + patientLabel(exam)"
+                              (click)="confirmCancel(exam)"
+                            >
+                              <mat-icon svgIcon="close"></mat-icon>
+                            </button>
+                          }
+                        </div>
+                      }
                     </article>
                   }
                 </div>
@@ -730,6 +745,7 @@ export class WorklistPage {
   private readonly api = inject(ScheduleApi);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly session = inject(AuthSession);
 
   readonly modalityOptions = MODALITY_OPTIONS;
   readonly exams = signal<ExamView[]>([]);
@@ -740,6 +756,8 @@ export class WorklistPage {
   readonly weekStart = signal(this.startOfWeek(new Date()));
   readonly modalityFilter = signal<Modality | 'ALL'>('ALL');
   readonly stationFilter = signal('ALL');
+  readonly canSchedule = computed(() => this.session.hasPermission('SCHEDULE_MANAGE'));
+  readonly canCancel = computed(() => this.session.hasPermission('EXAM_CANCEL'));
 
   readonly orderedExams = computed(() =>
     this.exams()
@@ -888,6 +906,7 @@ export class WorklistPage {
   }
 
   openSchedule(exam: ExamView | null = null, initialDate?: string, initialTime?: string): void {
+    if (!this.canSchedule()) return;
     const isReschedule = exam?.status === 'SCHEDULED';
     const availableOrders = exam?.status === 'ORDERED' ? [exam] : this.orderedExams();
     if (!isReschedule && availableOrders.length === 0) {
@@ -926,6 +945,7 @@ export class WorklistPage {
   }
 
   confirmCancel(exam: ExamView): void {
+    if (!this.canCancel()) return;
     this.dialog
       .open(CancelExamDialog, { data: exam, width: '460px', maxWidth: '95vw' })
       .afterClosed()

@@ -1,8 +1,7 @@
 import { DatePipe } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -14,7 +13,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { startWith } from 'rxjs';
-import { ConfirmDialog } from './confirm-dialog';
+import { AuthSession } from '../authentication/auth-session';
 import { Patient, PatientSex, patientDisplayName, patientSexLabel } from './patient';
 import { PatientApi } from './patient-api';
 import { PatientFormDialog } from './patient-form-dialog';
@@ -40,10 +39,12 @@ import { PatientFormDialog } from './patient-form-dialog';
         <h1>Patients</h1>
         <p>Register, view, and update synthetic patient records, then create an examination order.</p>
       </div>
-      <button mat-flat-button type="button" (click)="openForm()">
-        <mat-icon>person_add</mat-icon>
-        Register patient
-      </button>
+      @if (canWrite()) {
+        <button mat-flat-button type="button" (click)="openForm()">
+          <mat-icon>person_add</mat-icon>
+          Register patient
+        </button>
+      }
     </header>
     @if (error()) {
       <mat-card appearance="outlined" class="error-card" role="alert">
@@ -64,7 +65,9 @@ import { PatientFormDialog } from './patient-form-dialog';
           <mat-icon class="empty-icon">group</mat-icon>
           <h2>No patients yet</h2>
           <p>Register the first synthetic patient to begin an exam order.</p>
-          <button mat-flat-button type="button" (click)="openForm()">Register patient</button>
+          @if (canWrite()) {
+            <button mat-flat-button type="button" (click)="openForm()">Register patient</button>
+          }
         </mat-card-content>
       </mat-card>
     } @else if (patients().length > 0) {
@@ -125,21 +128,12 @@ import { PatientFormDialog } from './patient-form-dialog';
                 >
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button
-                  mat-icon-button
-                  type="button"
-                  matTooltip="Delete patient"
-                  [attr.aria-label]="'Delete ' + displayName(patient)"
-                  (click)="confirmDelete(patient, $event)"
-                >
-                  <mat-icon>delete</mat-icon>
-                </button>
               </td>
             </ng-container>
-            <tr mat-header-row *matHeaderRowDef="columns"></tr>
+            <tr mat-header-row *matHeaderRowDef="columns()"></tr>
             <tr
               mat-row
-              *matRowDef="let row; columns: columns"
+              *matRowDef="let row; columns: columns()"
               class="clickable-row"
               (click)="openDetails(row)"
             ></tr>
@@ -242,13 +236,24 @@ import { PatientFormDialog } from './patient-form-dialog';
 export class PatientsPage {
   private readonly api = inject(PatientApi);
   private readonly dialog = inject(MatDialog);
+  private readonly session = inject(AuthSession);
   private readonly router = inject(Router);
   readonly patients = signal<Patient[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
-  readonly columns = ['medicalRecordNumber', 'name', 'dateOfBirth', 'sex', 'updatedAt', 'actions'];
+  readonly canWrite = computed(() => this.session.hasPermission('PATIENT_WRITE'));
+  readonly columns = computed(() => [
+    'medicalRecordNumber',
+    'name',
+    'dateOfBirth',
+    'sex',
+    'updatedAt',
+    ...(this.canWrite() ? ['actions'] : []),
+  ]);
   readonly search = new FormControl('', { nonNullable: true });
-  private readonly searchValue = toSignal(this.search.valueChanges.pipe(startWith('')), { initialValue: '' });
+  private readonly searchValue = toSignal(this.search.valueChanges.pipe(startWith('')), {
+    initialValue: '',
+  });
   readonly filteredPatients = computed(() => {
     const query = this.searchValue().trim().toLowerCase();
     if (!query) {
@@ -259,7 +264,6 @@ export class PatientsPage {
       return haystack.includes(query);
     });
   });
-
   constructor() {
     this.load();
   }
@@ -285,6 +289,7 @@ export class PatientsPage {
 
   openForm(patient: Patient | null = null, event?: Event): void {
     event?.stopPropagation();
+    if (!this.canWrite()) return;
     this.dialog
       .open(PatientFormDialog, {
         data: patient,
@@ -300,28 +305,9 @@ export class PatientsPage {
       });
   }
 
-  confirmDelete(patient: Patient, event: Event): void {
-    event.stopPropagation();
-    this.dialog
-      .open(ConfirmDialog, { data: `${patient.firstName} ${patient.lastName}`, width: '420px' })
-      .afterClosed()
-      .subscribe((confirmed) => {
-        if (confirmed) {
-          this.delete(patient);
-        }
-      });
-  }
-
   displayName = patientDisplayName;
+
   sexLabel(sex: PatientSex): string {
     return patientSexLabel(sex);
-  }
-
-  private delete(patient: Patient): void {
-    this.api.delete(patient.id).subscribe({
-      next: () => this.load(),
-      error: (response: HttpErrorResponse) =>
-        this.error.set(response.error?.message ?? 'Patient could not be deleted.'),
-    });
   }
 }

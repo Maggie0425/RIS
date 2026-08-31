@@ -58,6 +58,45 @@
   width: 2px;
 }
 
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.user-summary {
+  align-items: center;
+  display: flex;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.user-summary > mat-icon {
+  flex: 0 0 auto;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  min-width: 0;
+}
+
+.user-details strong,
+.user-details small {
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-details strong {
+  font: var(--mat-sys-label-large);
+}
+
+.user-details small {
+  color: rgb(255 255 255 / 72%);
+  font: var(--mat-sys-label-small);
+}
+
 .workspace {
   background:
     radial-gradient(circle at 95% 0%, rgb(21 101 192 / 6%), transparent 28rem),
@@ -137,5 +176,9 @@ main {
 
   .brand-name {
     font-size: 0.95rem;
+  }
+
+  .user-details {
+    display: none;
   }
 }

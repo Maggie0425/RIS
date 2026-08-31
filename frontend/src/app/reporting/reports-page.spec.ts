@@ -1,9 +1,14 @@
 import { TestBed } from '@angular/core/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { AuthSession } from '../authentication/auth-session';
 import { ReportsPage } from './reports-page';
 
 describe('ReportsPage', () => {
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [ReportsPage] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [ReportsPage, MatIconTestingModule],
+      providers: [{ provide: AuthSession, useValue: { hasPermission: () => true } }],
+    }).compileComponents();
   });
 
   it('loads each reporting lifecycle group and selects an acquired exam', async () => {
