@@ -36,13 +36,15 @@ Verify this boundary against source before reporting status.
 - Patient, examination, schedule, report, user, role, and permission persistence
   foundations.
 - Server-side examination lifecycle methods and domain tests.
+- Technology-neutral acquisition-worklist query/service with optional modality,
+  inclusive Sydney calendar-date, and exact station AE-title AND filters.
 - Flyway migrations V1–V11 and synthetic seed data.
 - Swagger/OpenAPI generation for implemented controllers.
 
 ### Target, not yet proved end to end
 
 - Spring Security login, JWT handling, and API permission enforcement.
-- Examination creation/details/lifecycle actions, scheduling, worklist,
+- Examination creation/details/lifecycle actions, scheduling, worklist REST,
   reporting, and user-administration APIs.
 - DICOM MWL SCP and C-FIND matching.
 - Testcontainers-backed database tests, end-to-end workflow tests, and CI.

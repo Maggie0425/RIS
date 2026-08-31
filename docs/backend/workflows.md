@@ -1,7 +1,8 @@
 # Backend workflows
 
-Status: **Target**, with lifecycle transition methods already **Implemented** in
-the domain model. Verify complete API and persistence paths separately.
+Status: **Target**, with lifecycle transition methods and the technology-neutral
+worklist query service already **Implemented**. Verify complete API and
+persistence paths separately.
 
 ## Main examination lifecycle
 
@@ -26,6 +27,23 @@ Scheduled exam
 C-FIND is read-only. Receiving or answering the query must not mark an
 examination as acquired. Rescheduling changes later query results; cancellation
 withdraws the entry.
+
+### Implemented core query semantics
+
+The reusable backend worklist service accepts optional modality, inclusive
+scheduled calendar-date bounds, and station AE-title filters. Supplied filters
+use AND matching, station AE titles use exact case-sensitive matching, and only
+examinations currently in `SCHEDULED` are eligible.
+
+Calendar dates use the `Australia/Sydney` business timezone. The service
+converts a supplied start date to the start of that Sydney day, inclusive, and
+a supplied end date to the start of the following Sydney day, exclusive. This
+half-open timestamp interval preserves inclusive calendar-date behaviour across
+daylight-saving changes. Results are ordered by scheduled start and then exam
+identifier.
+
+The core result contains RIS patient, examination, and schedule values only.
+REST serialization and DICOM dataset/tag mapping remain adapter concerns.
 
 ## Reporting
 
