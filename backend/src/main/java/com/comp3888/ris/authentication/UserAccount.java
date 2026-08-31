@@ -50,6 +50,34 @@ class UserAccount {
     protected UserAccount() {
     }
 
+    static UserAccount create(String username, String passwordHash, String displayName, Set<Role> roles) {
+        UserAccount user = new UserAccount();
+        user.username = username;
+        user.passwordHash = passwordHash;
+        user.displayName = displayName;
+        user.enabled = true;
+        user.roles.addAll(roles);
+        Instant now = Instant.now();
+        user.createdAt = now;
+        user.updatedAt = now;
+        return user;
+    }
+
+    void replaceRoles(Set<Role> replacementRoles) {
+        roles.clear();
+        roles.addAll(replacementRoles);
+        updatedAt = Instant.now();
+    }
+
+    void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        updatedAt = Instant.now();
+    }
+
+    boolean hasRole(RoleCode roleCode) {
+        return roles.stream().anyMatch(role -> role.getCode() == roleCode);
+    }
+
     Long getId() {
         return id;
     }
@@ -82,4 +110,3 @@ class UserAccount {
         return Set.copyOf(roles);
     }
 }
-

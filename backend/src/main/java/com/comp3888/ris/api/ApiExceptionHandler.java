@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.comp3888.ris.exam.ExamNotFoundException;
+import com.comp3888.ris.authentication.DuplicateUsernameException;
+import com.comp3888.ris.authentication.FinalAdministratorException;
+import com.comp3888.ris.authentication.InvalidRoleAssignmentException;
+import com.comp3888.ris.authentication.UserNotFoundException;
 import com.comp3888.ris.patient.DuplicateMedicalRecordNumberException;
 import com.comp3888.ris.patient.PatientNotFoundException;
 
@@ -23,14 +27,20 @@ public class ApiExceptionHandler {
         return error(HttpStatus.UNAUTHORIZED, "Invalid username or password.", Map.of());
     }
 
-    @ExceptionHandler({ PatientNotFoundException.class, ExamNotFoundException.class })
+    @ExceptionHandler({ PatientNotFoundException.class, ExamNotFoundException.class, UserNotFoundException.class })
     ResponseEntity<ApiErrorResponse> handleNotFound(RuntimeException exception) {
         return error(HttpStatus.NOT_FOUND, exception.getMessage(), Map.of());
     }
 
-    @ExceptionHandler(DuplicateMedicalRecordNumberException.class)
-    ResponseEntity<ApiErrorResponse> handleConflict(DuplicateMedicalRecordNumberException exception) {
+    @ExceptionHandler({ DuplicateMedicalRecordNumberException.class, DuplicateUsernameException.class,
+            FinalAdministratorException.class })
+    ResponseEntity<ApiErrorResponse> handleConflict(RuntimeException exception) {
         return error(HttpStatus.CONFLICT, exception.getMessage(), Map.of());
+    }
+
+    @ExceptionHandler(InvalidRoleAssignmentException.class)
+    ResponseEntity<ApiErrorResponse> handleInvalidRole(InvalidRoleAssignmentException exception) {
+        return error(HttpStatus.BAD_REQUEST, exception.getMessage(), Map.of());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
