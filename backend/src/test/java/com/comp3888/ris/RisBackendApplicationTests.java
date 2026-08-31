@@ -2,18 +2,13 @@ package com.comp3888.ris;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.postgresql.PostgreSQLContainer;
+import org.springframework.context.annotation.Import;
+
+import com.comp3888.ris.support.PostgreSqlTestContainerConfiguration;
 
 @SpringBootTest
-@Testcontainers
+@Import(PostgreSqlTestContainerConfiguration.class)
 class RisBackendApplicationTests {
-
-	@Container
-	@ServiceConnection
-	static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");
 
 	@Test
 	void contextLoadsAndJpaSchemaValidates() {
