@@ -80,6 +80,16 @@ class Exam {
         transitionFrom(ExamStatus.REPORTED, ExamStatus.COMPLETED);
     }
 
+    void cancel() {
+        if (status != ExamStatus.ORDERED && status != ExamStatus.SCHEDULED) {
+            throw new InvalidExamTransitionException(status, ExamStatus.CANCELLED);
+        }
+
+        Instant transitionedAt = nextUpdatedAt();
+        status = ExamStatus.CANCELLED;
+        updatedAt = transitionedAt;
+    }
+
     private void transitionFrom(ExamStatus expectedStatus, ExamStatus targetStatus) {
         if (status != expectedStatus) {
             throw new InvalidExamTransitionException(status, targetStatus);

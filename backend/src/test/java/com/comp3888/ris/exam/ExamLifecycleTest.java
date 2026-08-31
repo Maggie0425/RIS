@@ -77,6 +77,36 @@ class ExamLifecycleTest {
         assertEquals(originalUpdatedAt, exam.getUpdatedAt());
     }
 
+    @ParameterizedTest(name = "{0} can be cancelled")
+    @MethodSource("cancellableStatuses")
+    void cancelsBeforeAcquisitionAndUpdatesTimestamp(ExamStatus startingStatus) {
+        Exam exam = examInStatus(startingStatus);
+        Instant createdAt = exam.getCreatedAt();
+        Instant originalUpdatedAt = exam.getUpdatedAt();
+
+        exam.cancel();
+
+        assertEquals(ExamStatus.CANCELLED, exam.getStatus());
+        assertEquals(createdAt, exam.getCreatedAt());
+        assertTrue(exam.getUpdatedAt().isAfter(originalUpdatedAt));
+    }
+
+    @ParameterizedTest(name = "cancellation is rejected from {0}")
+    @MethodSource("nonCancellableStatuses")
+    void rejectsCancellationWithoutChangingState(ExamStatus startingStatus) {
+        Exam exam = examInStatus(startingStatus);
+        Instant originalUpdatedAt = exam.getUpdatedAt();
+
+        InvalidExamTransitionException exception = assertThrows(
+                InvalidExamTransitionException.class,
+                exam::cancel);
+
+        assertTrue(exception.getMessage().contains(startingStatus.name()));
+        assertTrue(exception.getMessage().contains(ExamStatus.CANCELLED.name()));
+        assertEquals(startingStatus, exam.getStatus());
+        assertEquals(originalUpdatedAt, exam.getUpdatedAt());
+    }
+
     private static Stream<Arguments> validTransitions() {
         return Arrays.stream(Transition.values())
                 .map(transition -> Arguments.of(
@@ -92,6 +122,18 @@ class ExamLifecycleTest {
                         .map(transition -> Arguments.of(status, transition)));
     }
 
+    private static Stream<ExamStatus> cancellableStatuses() {
+        return Stream.of(ExamStatus.ORDERED, ExamStatus.SCHEDULED);
+    }
+
+    private static Stream<ExamStatus> nonCancellableStatuses() {
+        return Stream.of(
+                ExamStatus.ACQUIRED,
+                ExamStatus.REPORTED,
+                ExamStatus.COMPLETED,
+                ExamStatus.CANCELLED);
+    }
+
     private static Exam newOrder() {
         return Exam.createOrder(
                 PATIENT_ID,
@@ -104,6 +146,11 @@ class ExamLifecycleTest {
     private static Exam examInStatus(ExamStatus requestedStatus) {
         Exam exam = newOrder();
         if (requestedStatus == ExamStatus.ORDERED) {
+            return exam;
+        }
+
+        if (requestedStatus == ExamStatus.CANCELLED) {
+            exam.cancel();
             return exam;
         }
 
