@@ -9,15 +9,13 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.comp3888.ris.authentication.DemoActorService;
 import com.comp3888.ris.patient.PatientService;
 
 class ExamServiceTests {
 
     private final ExamRepository repository = mock(ExamRepository.class);
     private final PatientService patients = mock(PatientService.class);
-    private final DemoActorService actors = mock(DemoActorService.class);
-    private final ExamService service = new ExamService(repository, patients, actors);
+    private final ExamService service = new ExamService(repository, patients);
 
     @Test
     void listsAllExamsWhenNoStatusIsProvided() {

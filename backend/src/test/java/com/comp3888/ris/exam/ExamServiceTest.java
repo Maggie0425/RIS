@@ -15,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.comp3888.ris.authentication.DemoActorService;
 import com.comp3888.ris.patient.PatientService;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,24 +26,19 @@ class ExamServiceTest {
     @Mock
     private PatientService patients;
 
-    @Mock
-    private DemoActorService actors;
-
     private ExamService service;
 
     @BeforeEach
     void setUp() {
-        service = new ExamService(exams, patients, actors);
+        service = new ExamService(exams, patients);
     }
 
     @Test
     void createExamValidatesPatientAndBuildsOrderedExam() {
-        when(actors.defaultOrderCreatorId()).thenReturn(2L);
-        when(exams.countByAccessionNumberStartingWith("SYN-ACC-")).thenReturn(6L);
-        when(exams.findByAccessionNumber("SYN-ACC-0007")).thenReturn(Optional.empty());
+        when(exams.nextAccessionNumberValue()).thenReturn(7L);
         when(exams.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ExamResponse response = service.createExam(new ExamRequest(1L, "  CT abdomen  ", Modality.CT));
+        ExamResponse response = service.createExam(new ExamRequest(1L, "  CT abdomen  ", Modality.CT), 2L);
 
         verify(patients).getPatient(1L);
         assertThat(response.patientId()).isEqualTo(1L);
@@ -58,15 +52,11 @@ class ExamServiceTest {
     }
 
     @Test
-    void createExamSkipsAnExistingAccessionNumber() {
-        Exam existing = exam(9L, "SYN-ACC-0007", ExamStatus.ORDERED);
-        when(actors.defaultOrderCreatorId()).thenReturn(2L);
-        when(exams.countByAccessionNumberStartingWith("SYN-ACC-")).thenReturn(6L);
-        when(exams.findByAccessionNumber("SYN-ACC-0007")).thenReturn(Optional.of(existing));
-        when(exams.findByAccessionNumber("SYN-ACC-0008")).thenReturn(Optional.empty());
+    void createExamUsesTheNextDatabaseSequenceValue() {
+        when(exams.nextAccessionNumberValue()).thenReturn(8L);
         when(exams.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ExamResponse response = service.createExam(new ExamRequest(1L, "Chest X-ray", Modality.DX));
+        ExamResponse response = service.createExam(new ExamRequest(1L, "Chest X-ray", Modality.DX), 2L);
 
         assertThat(response.accessionNumber()).isEqualTo("SYN-ACC-0008");
     }

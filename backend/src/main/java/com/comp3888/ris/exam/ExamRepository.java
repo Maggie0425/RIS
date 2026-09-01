@@ -12,12 +12,12 @@ import com.comp3888.ris.worklist.WorklistItem;
 
 interface ExamRepository extends JpaRepository<Exam, Long> {
     Optional<Exam> findByAccessionNumber(String accessionNumber);
+    @Query(value = "select nextval('exam_accession_number_seq')", nativeQuery = true)
+    long nextAccessionNumberValue();
     List<Exam> findByPatientIdOrderByCreatedAtDesc(Long patientId);
     List<Exam> findByStatusOrderByCreatedAtDesc(ExamStatus status);
     List<Exam> findByPatientIdAndStatusOrderByCreatedAtDesc(Long patientId, ExamStatus status);
     List<Exam> findAllByOrderByCreatedAtDesc();
-    long countByAccessionNumberStartingWith(String prefix);
-
     @Query("""
             select new com.comp3888.ris.exam.ExamStatusCount(exam.status, count(exam))
             from Exam exam

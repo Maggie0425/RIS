@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.comp3888.ris.authentication.DemoActorService;
 import com.comp3888.ris.patient.PatientService;
 
 @Service
@@ -14,12 +13,10 @@ public class ExamService {
 
     private final ExamRepository exams;
     private final PatientService patients;
-    private final DemoActorService actors;
 
-    ExamService(ExamRepository exams, PatientService patients, DemoActorService actors) {
+    ExamService(ExamRepository exams, PatientService patients) {
         this.exams = exams;
         this.patients = patients;
-        this.actors = actors;
     }
 
     @Transactional(readOnly = true)
@@ -48,9 +45,8 @@ public class ExamService {
     }
 
     @Transactional
-    public ExamResponse createExam(ExamRequest request) {
+    public ExamResponse createExam(ExamRequest request, Long createdBy) {
         patients.getPatient(request.patientId());
-        Long createdBy = actors.defaultOrderCreatorId();
         Exam exam = Exam.createOrder(
                 request.patientId(), createdBy, nextAccessionNumber(),
                 request.requestedProcedure(), request.modality());
@@ -62,11 +58,6 @@ public class ExamService {
     }
 
     private String nextAccessionNumber() {
-        long next = exams.countByAccessionNumberStartingWith(ACCESSION_PREFIX) + 1;
-        String accessionNumber;
-        do {
-            accessionNumber = ACCESSION_PREFIX + String.format("%04d", next++);
-        } while (exams.findByAccessionNumber(accessionNumber).isPresent());
-        return accessionNumber;
+        return ACCESSION_PREFIX + String.format("%04d", exams.nextAccessionNumberValue());
     }
 }

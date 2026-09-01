@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
 import java.time.Instant;
 import java.util.List;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -24,8 +26,12 @@ import com.comp3888.ris.api.ApiExceptionHandler;
 import com.comp3888.ris.patient.PatientNotFoundException;
 
 @WebMvcTest(controllers = ExamController.class)
-@Import(ApiExceptionHandler.class)
+@Import({ ApiExceptionHandler.class, ExamControllerTest.MethodSecurityTestConfiguration.class })
 class ExamControllerTest {
+
+    @EnableMethodSecurity
+    static class MethodSecurityTestConfiguration {
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -36,10 +42,11 @@ class ExamControllerTest {
     @Test
     void createExamReturnsCreatedOrderInOrderedStatus() throws Exception {
         Instant now = Instant.parse("2026-08-24T09:00:00Z");
-        when(examService.createExam(any())).thenReturn(new ExamResponse(
+        when(examService.createExam(any(), any())).thenReturn(new ExamResponse(
                 7L, 1L, 2L, "SYN-ACC-0007", "CT abdomen", Modality.CT, ExamStatus.ORDERED, now, now));
 
         mockMvc.perform(post("/api/exams")
+                        .with(jwt().jwt(token -> token.claim("userId", 42L)).authorities(() -> "ORDER_CREATE"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"patientId":1,"requestedProcedure":"CT abdomen","modality":"CT"}
@@ -51,9 +58,10 @@ class ExamControllerTest {
 
     @Test
     void createExamRejectsUnknownPatient() throws Exception {
-        when(examService.createExam(any())).thenThrow(new PatientNotFoundException(99L));
+        when(examService.createExam(any(), any())).thenThrow(new PatientNotFoundException(99L));
 
         mockMvc.perform(post("/api/exams")
+                        .with(jwt().jwt(token -> token.claim("userId", 42L)).authorities(() -> "ORDER_CREATE"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"patientId":99,"requestedProcedure":"CT abdomen","modality":"CT"}
@@ -64,12 +72,13 @@ class ExamControllerTest {
     @Test
     void createExamRejectsInvalidBody() throws Exception {
         mockMvc.perform(post("/api/exams")
+                        .with(jwt().jwt(token -> token.claim("userId", 42L)).authorities(() -> "ORDER_CREATE"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"patientId":1,"requestedProcedure":"","modality":"CT"}
                                 """))
                 .andExpect(status().isBadRequest());
-        verify(examService, never()).createExam(any());
+        verify(examService, never()).createExam(any(), any());
     }
 
     @Test
@@ -79,6 +88,7 @@ class ExamControllerTest {
                 7L, 1L, 2L, "SYN-ACC-0007", "CT abdomen", Modality.CT, ExamStatus.ORDERED, now, now)));
 
         mockMvc.perform(get("/api/exams")
+                        .with(jwt().authorities(() -> "EXAM_READ"))
                         .param("patientId", "1")
                         .param("status", "ORDERED"))
                 .andExpect(status().isOk())
@@ -93,7 +103,7 @@ class ExamControllerTest {
     void getExamReturnsNotFoundErrorBody() throws Exception {
         when(examService.getExam(404L)).thenThrow(new ExamNotFoundException(404L));
 
-        mockMvc.perform(get("/api/exams/404"))
+        mockMvc.perform(get("/api/exams/404").with(jwt().authorities(() -> "EXAM_READ")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Exam 404 was not found."));
@@ -102,6 +112,7 @@ class ExamControllerTest {
     @Test
     void createExamRejectsMissingPatientAndModality() throws Exception {
         mockMvc.perform(post("/api/exams")
+                        .with(jwt().jwt(token -> token.claim("userId", 42L)).authorities(() -> "ORDER_CREATE"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"requestedProcedure":"CT abdomen"}
@@ -110,14 +121,60 @@ class ExamControllerTest {
                 .andExpect(jsonPath("$.fieldErrors.patientId").exists())
                 .andExpect(jsonPath("$.fieldErrors.modality").exists());
 
-        verify(examService, never()).createExam(any());
+        verify(examService, never()).createExam(any(), any());
     }
 
     @Test
     void listExamsRejectsUnknownStatus() throws Exception {
-        mockMvc.perform(get("/api/exams").param("status", "UNKNOWN"))
+        mockMvc.perform(get("/api/exams").with(jwt().authorities(() -> "EXAM_READ")).param("status", "UNKNOWN"))
                 .andExpect(status().isBadRequest());
 
         verify(examService, never()).getExams(any(), any());
+    }
+
+    @Test
+    void createExamRejectsNonPositivePatientId() throws Exception {
+        mockMvc.perform(post("/api/exams")
+                        .with(jwt().jwt(token -> token.claim("userId", 42L)).authorities(() -> "ORDER_CREATE"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"patientId":0,"requestedProcedure":"CT abdomen","modality":"CT"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.patientId").exists());
+
+        verify(examService, never()).createExam(any(), any());
+    }
+
+    @Test
+    void createExamUsesAuthenticatedUserId() throws Exception {
+        Instant now = Instant.parse("2026-08-24T09:00:00Z");
+        when(examService.createExam(any(), any())).thenReturn(new ExamResponse(
+                7L, 1L, 42L, "SYN-ACC-0007", "CT abdomen", Modality.CT, ExamStatus.ORDERED, now, now));
+
+        mockMvc.perform(post("/api/exams")
+                        .with(jwt().jwt(token -> token.claim("userId", 42L)).authorities(() -> "ORDER_CREATE"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"patientId":1,"requestedProcedure":"CT abdomen","modality":"CT"}
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.createdBy").value(42));
+
+        verify(examService).createExam(any(), org.mockito.ArgumentMatchers.eq(42L));
+    }
+
+    @Test
+    void examEndpointsEnforceTheirPermissions() throws Exception {
+        mockMvc.perform(get("/api/exams").with(jwt().authorities(() -> "ORDER_CREATE")))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/exams")
+                        .with(jwt().authorities(() -> "EXAM_READ"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"patientId":1,"requestedProcedure":"CT abdomen","modality":"CT"}
+                                """))
+                .andExpect(status().isForbidden());
     }
 }
