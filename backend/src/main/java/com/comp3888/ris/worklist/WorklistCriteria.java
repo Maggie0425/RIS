@@ -14,7 +14,7 @@ public record WorklistCriteria(
         if (scheduledDateFrom != null
                 && scheduledDateTo != null
                 && scheduledDateFrom.isAfter(scheduledDateTo)) {
-            throw new IllegalArgumentException(
+            throw new InvalidWorklistCriteriaException(
                     "scheduledDateFrom must be on or before scheduledDateTo");
         }
     }

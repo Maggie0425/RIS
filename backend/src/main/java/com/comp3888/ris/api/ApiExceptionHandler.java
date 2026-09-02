@@ -12,12 +12,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.comp3888.ris.exam.ExamNotFoundException;
+import com.comp3888.ris.exam.InvalidExamTransitionException;
 import com.comp3888.ris.authentication.DuplicateUsernameException;
 import com.comp3888.ris.authentication.FinalAdministratorException;
 import com.comp3888.ris.authentication.InvalidRoleAssignmentException;
 import com.comp3888.ris.authentication.UserNotFoundException;
 import com.comp3888.ris.patient.DuplicateMedicalRecordNumberException;
 import com.comp3888.ris.patient.PatientNotFoundException;
+import com.comp3888.ris.scheduling.ExamScheduleStateException;
+import com.comp3888.ris.worklist.InvalidWorklistCriteriaException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -33,13 +36,14 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler({ DuplicateMedicalRecordNumberException.class, DuplicateUsernameException.class,
-            FinalAdministratorException.class })
+            FinalAdministratorException.class, InvalidExamTransitionException.class,
+            ExamScheduleStateException.class })
     ResponseEntity<ApiErrorResponse> handleConflict(RuntimeException exception) {
         return error(HttpStatus.CONFLICT, exception.getMessage(), Map.of());
     }
 
-    @ExceptionHandler(InvalidRoleAssignmentException.class)
-    ResponseEntity<ApiErrorResponse> handleInvalidRole(InvalidRoleAssignmentException exception) {
+    @ExceptionHandler({ InvalidRoleAssignmentException.class, InvalidWorklistCriteriaException.class })
+    ResponseEntity<ApiErrorResponse> handleBadRequest(RuntimeException exception) {
         return error(HttpStatus.BAD_REQUEST, exception.getMessage(), Map.of());
     }
 

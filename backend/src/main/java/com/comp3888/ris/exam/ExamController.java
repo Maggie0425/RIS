@@ -11,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,9 +30,11 @@ import jakarta.validation.Valid;
 @Tag(name = "Exams", description = "Examination orders and lifecycle status")
 public class ExamController {
     private final ExamService service;
+    private final ExamWorkflowService workflowService;
 
-    ExamController(ExamService service) {
+    ExamController(ExamService service, ExamWorkflowService workflowService) {
         this.service = service;
+        this.workflowService = workflowService;
     }
 
     @GetMapping
@@ -78,5 +81,40 @@ public class ExamController {
         Long createdBy = ((Number) jwt.getClaim("userId")).longValue();
         ExamResponse response = service.createExam(request, createdBy);
         return ResponseEntity.created(URI.create("/api/exams/" + response.id())).body(response);
+    }
+
+    @PutMapping("/{id}/schedule")
+    @PreAuthorize("hasAuthority('SCHEDULE_MANAGE')")
+    @Operation(
+            summary = "Schedule or reschedule an examination",
+            description = "Creates the only active schedule for an ORDERED examination, or updates the existing schedule for a SCHEDULED examination.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Examination scheduled or rescheduled"),
+            @ApiResponse(responseCode = "400", description = "Request validation failed"),
+            @ApiResponse(responseCode = "401", description = "Authentication required"),
+            @ApiResponse(responseCode = "403", description = "SCHEDULE_MANAGE permission required"),
+            @ApiResponse(responseCode = "404", description = "Examination not found"),
+            @ApiResponse(responseCode = "409", description = "Examination cannot be scheduled in its current state")
+    })
+    public ScheduleExamResponse scheduleExam(
+            @PathVariable Long id,
+            @Valid @RequestBody ScheduleExamRequest request) {
+        return workflowService.scheduleExam(id, request);
+    }
+
+    @PostMapping("/{id}/cancel")
+    @PreAuthorize("hasAuthority('EXAM_CANCEL')")
+    @Operation(
+            summary = "Cancel an examination",
+            description = "Cancels an ORDERED or SCHEDULED examination. Examinations at or beyond acquisition cannot be cancelled.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Examination cancelled"),
+            @ApiResponse(responseCode = "401", description = "Authentication required"),
+            @ApiResponse(responseCode = "403", description = "EXAM_CANCEL permission required"),
+            @ApiResponse(responseCode = "404", description = "Examination not found"),
+            @ApiResponse(responseCode = "409", description = "Examination cannot be cancelled in its current state")
+    })
+    public ExamResponse cancelExam(@PathVariable Long id) {
+        return workflowService.cancelExam(id);
     }
 }

@@ -1,114 +1,211 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
 import { firstValueFrom, Observable } from 'rxjs';
 import { ExamView, ScheduleExamRequest } from './schedule';
 import { ScheduleApi } from './schedule-api';
 
 describe('ScheduleApi', () => {
   let api: ScheduleApi;
+  let http: HttpTestingController;
 
   const initialRequest: ScheduleExamRequest = {
-    scheduledStart: '2030-01-15T10:30:00.000Z',
-    stationAeTitle: '  CT_TEST  ',
+    scheduledStart: '2030-01-15T10:30:00Z',
+    stationAeTitle: ' CT_TEST ',
   };
 
   beforeEach(() => {
-    api = new ScheduleApi();
+    TestBed.configureTestingModule({
+      providers: [ScheduleApi, provideHttpClient(), provideHttpClientTesting()],
+    });
+    api = TestBed.inject(ScheduleApi);
+    http = TestBed.inject(HttpTestingController);
   });
 
-  it('lists seeded exams as defensive copies', async () => {
-    const firstList = await firstValueFrom(api.listExams());
+  afterEach(() => http.verify());
 
-    expect(firstList.length).toBe(8);
-    expect(firstList.some((exam) => exam.status === 'ORDERED')).toBe(true);
-    expect(firstList.some((exam) => exam.status === 'SCHEDULED')).toBe(true);
+  it('loads and combines exams, patients and the active worklist', async () => {
+    const result = firstValueFrom(api.listExams());
 
-    firstList[0].patient.firstName = 'Changed';
-    const scheduledExam = firstList.find((exam) => exam.schedule !== null);
-    if (!scheduledExam?.schedule) {
-      throw new Error('Expected a seeded scheduled exam.');
-    }
-    scheduledExam.schedule.stationAeTitle = 'CHANGED';
+    flushLoad(
+      [examResponse(11, 1, 'ORDERED'), examResponse(12, 2, 'SCHEDULED', 'DX')],
+      [patientResponse(1, 'Avery', 'Taylor'), patientResponse(2, 'Jordan', 'Lee')],
+      [worklistResponse(12, 2, 'DX', 'XRAY_1', '2030-01-15T10:30:00Z')],
+    );
 
-    const secondList = await firstValueFrom(api.listExams());
-    expect(secondList[0].patient.firstName).not.toBe('Changed');
-    expect(
-      secondList.find((exam) => exam.id === scheduledExam.id)?.schedule?.stationAeTitle,
-    ).not.toBe('CHANGED');
+    const exams = await result;
+    expect(exams).toHaveLength(2);
+    expect(exams[0]).toMatchObject({
+      id: 11,
+      status: 'ORDERED',
+      patient: { id: 1, firstName: 'Avery', lastName: 'Taylor' },
+      schedule: null,
+    });
+    expect(exams[1]).toMatchObject({
+      id: 12,
+      status: 'SCHEDULED',
+      patient: { id: 2, firstName: 'Jordan', lastName: 'Lee' },
+      schedule: {
+        scheduledStart: '2030-01-15T10:30:00Z',
+        stationAeTitle: 'XRAY_1',
+      },
+    });
   });
 
-  it('schedules an ordered exam and persists the updated state', async () => {
-    const scheduled = await firstValueFrom(api.schedule(101, initialRequest));
+  it('schedules an exam through the backend and reloads the persisted result', async () => {
+    const result = firstValueFrom(api.schedule(11, initialRequest));
 
-    expect(scheduled.id).toBe(101);
+    const update = http.expectOne('/api/exams/11/schedule');
+    expect(update.request.method).toBe('PUT');
+    expect(update.request.body).toEqual(initialRequest);
+    update.flush(scheduleResponse(11, 501, 'CT_TEST', initialRequest.scheduledStart));
+
+    flushLoad(
+      [examResponse(11, 1, 'SCHEDULED')],
+      [patientResponse(1, 'Avery', 'Taylor')],
+      [worklistResponse(11, 1, 'CT', 'CT_TEST', initialRequest.scheduledStart)],
+    );
+
+    const scheduled = await result;
     expect(scheduled.status).toBe('SCHEDULED');
-    expect(scheduled.schedule?.scheduledStart).toBe(initialRequest.scheduledStart);
-    expect(scheduled.schedule?.stationAeTitle).toBe('CT_TEST');
-
-    const stored = (await firstValueFrom(api.listExams())).find((exam) => exam.id === 101);
-    expect(stored?.status).toBe('SCHEDULED');
-    expect(stored?.schedule?.stationAeTitle).toBe('CT_TEST');
+    expect(scheduled.schedule).toEqual({
+      scheduledStart: initialRequest.scheduledStart,
+      stationAeTitle: 'CT_TEST',
+    });
   });
 
-  it('rejects scheduling an exam that is not an unscheduled order', async () => {
-    const message = await readError(api.schedule(102, initialRequest));
-
-    expect(message).toBe('Only an ordered exam without a schedule can be scheduled.');
-  });
-
-  it('reschedules an existing appointment without replacing its schedule identity', async () => {
-    const before = (await firstValueFrom(api.listExams())).find((exam) => exam.id === 102);
-    if (!before?.schedule) {
-      throw new Error('Expected exam 102 to have a schedule.');
-    }
-
+  it('reschedules through the same endpoint and returns the new worklist values', async () => {
     const request: ScheduleExamRequest = {
-      scheduledStart: '2030-02-20T14:00:00.000Z',
-      stationAeTitle: '  XRAY_2 ',
+      scheduledStart: '2030-02-20T14:00:00Z',
+      stationAeTitle: 'XRAY_2',
     };
-    const updated = await firstValueFrom(api.reschedule(102, request));
+    const result = firstValueFrom(api.reschedule(12, request));
 
-    expect(updated.status).toBe('SCHEDULED');
-    expect(updated.schedule?.id).toBe(before.schedule.id);
-    expect(updated.schedule?.createdAt).toBe(before.schedule.createdAt);
-    expect(updated.schedule?.scheduledStart).toBe(request.scheduledStart);
-    expect(updated.schedule?.stationAeTitle).toBe('XRAY_2');
-  });
+    const update = http.expectOne('/api/exams/12/schedule');
+    expect(update.request.method).toBe('PUT');
+    expect(update.request.body).toEqual(request);
+    update.flush(scheduleResponse(12, 502, 'XRAY_2', request.scheduledStart));
 
-  it('rejects rescheduling an exam that is not currently scheduled', async () => {
-    const message = await readError(api.reschedule(101, initialRequest));
-
-    expect(message).toBe('Only a scheduled exam can be rescheduled.');
-  });
-
-  it('cancels ordered and scheduled exams as a terminal status', async () => {
-    const cancelledOrder = await firstValueFrom(api.cancel(101));
-    const cancelledAppointment = await firstValueFrom(api.cancel(102));
-
-    expect(cancelledOrder.status).toBe('CANCELLED');
-    expect(cancelledOrder.schedule).toBeNull();
-    expect(cancelledAppointment.status).toBe('CANCELLED');
-    expect(cancelledAppointment.schedule).not.toBeNull();
-
-    const stored = await firstValueFrom(api.listExams());
-    expect(stored.find((exam) => exam.id === 101)?.status).toBe('CANCELLED');
-    expect(stored.find((exam) => exam.id === 102)?.status).toBe('CANCELLED');
-  });
-
-  it('rejects cancelling an exam that is already terminal', async () => {
-    const message = await readError(api.cancel(108));
-
-    expect(message).toBe('This exam can no longer be cancelled.');
-  });
-
-  it('reports missing exam identifiers for every mutation', async () => {
-    expect(await readError(api.schedule(9999, initialRequest))).toBe(
-      'The exam order was not found.',
+    flushLoad(
+      [examResponse(12, 2, 'SCHEDULED', 'DX')],
+      [patientResponse(2, 'Jordan', 'Lee')],
+      [worklistResponse(12, 2, 'DX', 'XRAY_2', request.scheduledStart)],
     );
-    expect(await readError(api.reschedule(9999, initialRequest))).toBe(
-      'The scheduled exam was not found.',
-    );
-    expect(await readError(api.cancel(9999))).toBe('The exam was not found.');
+
+    expect((await result).schedule).toEqual({
+      scheduledStart: request.scheduledStart,
+      stationAeTitle: 'XRAY_2',
+    });
   });
+
+  it('cancels an exam and reloads it without an active worklist schedule', async () => {
+    const result = firstValueFrom(api.cancel(12));
+
+    const update = http.expectOne('/api/exams/12/cancel');
+    expect(update.request.method).toBe('POST');
+    expect(update.request.body).toBeNull();
+    update.flush(examResponse(12, 2, 'CANCELLED', 'DX'));
+
+    flushLoad([examResponse(12, 2, 'CANCELLED', 'DX')], [patientResponse(2, 'Jordan', 'Lee')], []);
+
+    const cancelled = await result;
+    expect(cancelled.status).toBe('CANCELLED');
+    expect(cancelled.schedule).toBeNull();
+  });
+
+  it('surfaces the backend lifecycle error message', async () => {
+    const message = readError(api.schedule(13, initialRequest));
+
+    http
+      .expectOne('/api/exams/13/schedule')
+      .flush(
+        { message: 'Cannot transition exam from ACQUIRED to SCHEDULED.' },
+        { status: 409, statusText: 'Conflict' },
+      );
+
+    expect(await message).toBe('Cannot transition exam from ACQUIRED to SCHEDULED.');
+  });
+
+  function flushLoad(exams: object[], patients: object[], worklist: object[]): void {
+    const examRequest = http.expectOne('/api/exams');
+    const patientRequest = http.expectOne('/api/patients');
+    const worklistRequest = http.expectOne('/api/worklist');
+    expect(examRequest.request.method).toBe('GET');
+    expect(patientRequest.request.method).toBe('GET');
+    expect(worklistRequest.request.method).toBe('GET');
+    examRequest.flush(exams);
+    patientRequest.flush(patients);
+    worklistRequest.flush(worklist);
+  }
 });
+
+function examResponse(id: number, patientId: number, status: string, modality = 'CT'): object {
+  return {
+    id,
+    patientId,
+    createdBy: 2,
+    accessionNumber: `SYN-ACC-${String(id).padStart(4, '0')}`,
+    requestedProcedure: `${modality} test`,
+    modality,
+    status,
+    createdAt: '2030-01-01T00:00:00Z',
+    updatedAt: '2030-01-02T00:00:00Z',
+  };
+}
+
+function patientResponse(id: number, firstName: string, lastName: string): object {
+  return {
+    id,
+    medicalRecordNumber: `SYN-${String(id).padStart(6, '0')}`,
+    firstName,
+    lastName,
+    dateOfBirth: '1990-04-15',
+    sex: 'UNKNOWN',
+    createdAt: '2030-01-01T00:00:00Z',
+    updatedAt: '2030-01-01T00:00:00Z',
+  };
+}
+
+function worklistResponse(
+  examId: number,
+  patientId: number,
+  modality: string,
+  stationAeTitle: string,
+  scheduledStart: string,
+): object {
+  return {
+    patientId,
+    medicalRecordNumber: `SYN-${String(patientId).padStart(6, '0')}`,
+    patientFirstName: 'Synthetic',
+    patientLastName: 'Patient',
+    patientDateOfBirth: '1990-04-15',
+    patientSex: 'UNKNOWN',
+    examId,
+    accessionNumber: `SYN-ACC-${String(examId).padStart(4, '0')}`,
+    requestedProcedure: `${modality} test`,
+    modality,
+    status: 'SCHEDULED',
+    scheduledStart,
+    stationAeTitle,
+  };
+}
+
+function scheduleResponse(
+  examId: number,
+  scheduleId: number,
+  stationAeTitle: string,
+  scheduledStart: string,
+): object {
+  return {
+    examId,
+    status: 'SCHEDULED',
+    scheduleId,
+    scheduledStart,
+    stationAeTitle,
+    createdAt: '2030-01-01T00:00:00Z',
+    updatedAt: '2030-01-02T00:00:00Z',
+  };
+}
 
 async function readError(source: Observable<ExamView>): Promise<string> {
   try {

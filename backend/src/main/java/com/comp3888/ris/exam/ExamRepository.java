@@ -4,7 +4,10 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.persistence.LockModeType;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,6 +15,11 @@ import com.comp3888.ris.worklist.WorklistItem;
 
 interface ExamRepository extends JpaRepository<Exam, Long> {
     Optional<Exam> findByAccessionNumber(String accessionNumber);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select exam from Exam exam where exam.id = :id")
+    Optional<Exam> findByIdForUpdate(@Param("id") Long id);
+
     @Query(value = "select nextval('exam_accession_number_seq')", nativeQuery = true)
     long nextAccessionNumberValue();
     List<Exam> findByPatientIdOrderByCreatedAtDesc(Long patientId);

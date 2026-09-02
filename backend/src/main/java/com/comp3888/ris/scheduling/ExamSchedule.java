@@ -1,6 +1,7 @@
 package com.comp3888.ris.scheduling;
 
 import java.time.Instant;
+import java.util.Objects;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,6 +36,42 @@ class ExamSchedule {
     protected ExamSchedule() {
     }
 
+    static ExamSchedule create(Long examId, Instant scheduledStart, String stationAeTitle) {
+        ExamSchedule schedule = new ExamSchedule();
+        schedule.examId = Objects.requireNonNull(examId, "examId is required");
+        schedule.scheduledStart = Objects.requireNonNull(scheduledStart, "scheduledStart is required");
+        schedule.stationAeTitle = validateStationAeTitle(stationAeTitle);
+
+        Instant now = Instant.now();
+        schedule.createdAt = now;
+        schedule.updatedAt = now;
+        return schedule;
+    }
+
+    void reschedule(Instant scheduledStart, String stationAeTitle) {
+        Instant newScheduledStart = Objects.requireNonNull(scheduledStart, "scheduledStart is required");
+        String newStationAeTitle = validateStationAeTitle(stationAeTitle);
+        this.scheduledStart = newScheduledStart;
+        this.stationAeTitle = newStationAeTitle;
+        this.updatedAt = nextUpdatedAt();
+    }
+
+    private static String validateStationAeTitle(String stationAeTitle) {
+        String trimmed = Objects.requireNonNull(stationAeTitle, "stationAeTitle is required").trim();
+        if (trimmed.isBlank()) {
+            throw new IllegalArgumentException("stationAeTitle must not be blank");
+        }
+        if (trimmed.length() > 16) {
+            throw new IllegalArgumentException("stationAeTitle must be 16 characters or fewer");
+        }
+        return trimmed;
+    }
+
+    private Instant nextUpdatedAt() {
+        Instant now = Instant.now();
+        return now.isAfter(updatedAt) ? now : updatedAt.plusNanos(1);
+    }
+
     Long getId() {
         return id;
     }
@@ -59,4 +96,3 @@ class ExamSchedule {
         return updatedAt;
     }
 }
-

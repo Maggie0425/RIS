@@ -11,11 +11,11 @@ export interface PatientSummary {
 }
 
 export interface ExamScheduleSummary {
-  id: number;
+  id?: number;
   scheduledStart: string;
   stationAeTitle: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ExamView {

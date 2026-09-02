@@ -64,9 +64,9 @@ interface TimeSlot {
     <section class="implementation-note" aria-label="Scheduling implementation status">
       <mat-icon svgIcon="info"></mat-icon>
       <div>
-        <strong>Prototype scheduling data</strong>
+        <strong>Backend-connected scheduling</strong>
         <span>
-          The scheduling API is still planned. Times shown here are start-time choices, not
+          Appointments and changes are stored in PostgreSQL. Times are scheduled starts, not
           confirmed equipment availability.
         </span>
       </div>

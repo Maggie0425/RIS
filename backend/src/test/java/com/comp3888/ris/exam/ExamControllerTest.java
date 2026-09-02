@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -38,6 +39,9 @@ class ExamControllerTest {
 
     @MockitoBean
     private ExamService examService;
+
+    @MockitoBean
+    private ExamWorkflowService workflowService;
 
     @Test
     void createExamReturnsCreatedOrderInOrderedStatus() throws Exception {
@@ -162,6 +166,105 @@ class ExamControllerTest {
                 .andExpect(jsonPath("$.createdBy").value(42));
 
         verify(examService).createExam(any(), org.mockito.ArgumentMatchers.eq(42L));
+    }
+
+    @Test
+    void scheduleExamReturnsUpdatedSchedule() throws Exception {
+        Instant scheduledStart = Instant.parse("2026-09-15T09:30:00Z");
+        Instant now = Instant.parse("2026-09-01T00:00:00Z");
+        when(workflowService.scheduleExam(any(), any())).thenReturn(new ScheduleExamResponse(
+                7L, ExamStatus.SCHEDULED, 9L, scheduledStart, "CT_1", now, now));
+
+        mockMvc.perform(put("/api/exams/7/schedule")
+                        .with(jwt().authorities(() -> "SCHEDULE_MANAGE"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"scheduledStart":"2026-09-15T09:30:00Z","stationAeTitle":"CT_1"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.examId").value(7))
+                .andExpect(jsonPath("$.status").value("SCHEDULED"))
+                .andExpect(jsonPath("$.scheduleId").value(9))
+                .andExpect(jsonPath("$.scheduledStart").value("2026-09-15T09:30:00Z"))
+                .andExpect(jsonPath("$.stationAeTitle").value("CT_1"));
+
+        verify(workflowService).scheduleExam(org.mockito.ArgumentMatchers.eq(7L), any());
+    }
+
+    @Test
+    void cancelExamReturnsCancelledExam() throws Exception {
+        Instant createdAt = Instant.parse("2026-08-24T09:00:00Z");
+        Instant updatedAt = Instant.parse("2026-09-01T00:00:00Z");
+        when(workflowService.cancelExam(7L)).thenReturn(new ExamResponse(
+                7L, 1L, 2L, "SYN-ACC-0007", "CT abdomen", Modality.CT,
+                ExamStatus.CANCELLED, createdAt, updatedAt));
+
+        mockMvc.perform(post("/api/exams/7/cancel")
+                        .with(jwt().authorities(() -> "EXAM_CANCEL")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(7))
+                .andExpect(jsonPath("$.status").value("CANCELLED"));
+
+        verify(workflowService).cancelExam(7L);
+    }
+
+    @Test
+    void scheduleExamRejectsInvalidBody() throws Exception {
+        mockMvc.perform(put("/api/exams/7/schedule")
+                        .with(jwt().authorities(() -> "SCHEDULE_MANAGE"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"stationAeTitle":""}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.scheduledStart").exists())
+                .andExpect(jsonPath("$.fieldErrors.stationAeTitle").exists());
+
+        verify(workflowService, never()).scheduleExam(any(), any());
+    }
+
+    @Test
+    void workflowEndpointsEnforceTheirPermissions() throws Exception {
+        mockMvc.perform(put("/api/exams/7/schedule")
+                        .with(jwt().authorities(() -> "EXAM_CANCEL"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"scheduledStart":"2026-09-15T09:30:00Z","stationAeTitle":"CT_1"}
+                                """))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/exams/7/cancel")
+                        .with(jwt().authorities(() -> "SCHEDULE_MANAGE")))
+                .andExpect(status().isForbidden());
+
+        verify(workflowService, never()).scheduleExam(any(), any());
+        verify(workflowService, never()).cancelExam(any());
+    }
+
+    @Test
+    void workflowConflictsReturnConflictErrorBodies() throws Exception {
+        when(workflowService.scheduleExam(any(), any())).thenThrow(
+                new InvalidExamTransitionException(ExamStatus.ACQUIRED, ExamStatus.SCHEDULED));
+        when(workflowService.cancelExam(8L)).thenThrow(
+                new InvalidExamTransitionException(ExamStatus.ACQUIRED, ExamStatus.CANCELLED));
+
+        mockMvc.perform(put("/api/exams/7/schedule")
+                        .with(jwt().authorities(() -> "SCHEDULE_MANAGE"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"scheduledStart":"2026-09-15T09:30:00Z","stationAeTitle":"CT_1"}
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message")
+                        .value("Cannot transition exam from ACQUIRED to SCHEDULED."));
+
+        mockMvc.perform(post("/api/exams/8/cancel")
+                        .with(jwt().authorities(() -> "EXAM_CANCEL")))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message")
+                        .value("Cannot transition exam from ACQUIRED to CANCELLED."));
     }
 
     @Test
