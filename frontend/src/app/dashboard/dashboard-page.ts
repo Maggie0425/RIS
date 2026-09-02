@@ -34,7 +34,7 @@ interface StatusCard {
         <p class="subtitle">An overview of radiology workflow activity.</p>
       </div>
       <button mat-stroked-button (click)="load()" [disabled]="loading()">
-        <mat-icon>refresh</mat-icon>
+        <mat-icon svgIcon="pending_actions"></mat-icon>
         Refresh
       </button>
     </header>
@@ -43,7 +43,7 @@ interface StatusCard {
       <mat-card appearance="outlined" class="error-card" role="alert">
         <mat-card-content>
           <div>
-            <mat-icon>error_outline</mat-icon>
+            <mat-icon svgIcon="error"></mat-icon>
             <span>{{ error() }}</span>
           </div>
           <button mat-button (click)="load()">Try again</button>
@@ -60,7 +60,7 @@ interface StatusCard {
       @if (data.totalExams === 0) {
         <mat-card appearance="outlined" class="empty-state">
           <mat-card-content>
-            <span class="empty-icon" aria-hidden="true"><mat-icon>inbox</mat-icon></span>
+            <span class="empty-icon" aria-hidden="true"><mat-icon svgIcon="inbox"></mat-icon></span>
             <h2>No examination activity yet</h2>
             <p>Exam statistics will appear after the first order is created.</p>
           </mat-card-content>
@@ -84,10 +84,10 @@ interface StatusCard {
                 <mat-card-content>
                   <div class="card-heading">
                     <span class="icon-box" aria-hidden="true"
-                      ><mat-icon>{{ card.icon }}</mat-icon></span
+                      ><mat-icon [svgIcon]="card.icon"></mat-icon></span
                     >
                     <span>{{ card.label }}</span>
-                    <mat-icon class="open-icon" aria-hidden="true">arrow_forward</mat-icon>
+                    <mat-icon class="open-icon" aria-hidden="true" svgIcon="chevron_right"></mat-icon>
                   </div>
                   <strong class="metric">{{ data[card.key] }}</strong>
                   <p>{{ card.description }}</p>
@@ -129,7 +129,7 @@ interface StatusCard {
       }
       @if (lastRefreshed(); as refreshedAt) {
         <p class="last-refreshed" aria-live="polite">
-          <mat-icon aria-hidden="true">schedule</mat-icon>
+          <mat-icon aria-hidden="true" svgIcon="schedule"></mat-icon>
           Last refreshed: {{ refreshedAt | date: 'dd MMM yyyy, HH:mm:ss' }}
         </p>
       }
@@ -384,7 +384,7 @@ export class DashboardPage {
       key: 'totalExams',
       label: 'Total exams',
       description: 'All examination orders in the system.',
-      icon: 'monitoring',
+      icon: 'view_list',
       status: null,
     },
     {
@@ -405,7 +405,7 @@ export class DashboardPage {
       key: 'acquired',
       label: 'Acquired',
       description: 'Imaging completed and awaiting a report.',
-      icon: 'radiology',
+      icon: 'check_circle',
       status: 'ACQUIRED',
     },
     {

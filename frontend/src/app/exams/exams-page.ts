@@ -27,7 +27,7 @@ import { ExamApi } from './exam-api';
         <p>Track imaging exam orders. Create a new order from a patient record.</p>
       </div>
       <a mat-stroked-button routerLink="/patients">
-        <mat-icon>group</mat-icon>
+        <mat-icon svgIcon="group"></mat-icon>
         Open patients
       </a>
     </header>

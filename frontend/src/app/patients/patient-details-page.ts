@@ -30,7 +30,7 @@ import { PatientFormDialog } from './patient-form-dialog';
   ],
   template: `
     <a class="back" routerLink="/patients">
-      <mat-icon>arrow_back</mat-icon>
+      <mat-icon svgIcon="chevron_left"></mat-icon>
       Patients
     </a>
     @if (loading()) {
@@ -54,11 +54,11 @@ import { PatientFormDialog } from './patient-form-dialog';
         </div>
         <div class="header-actions">
           <button mat-stroked-button type="button" (click)="openEdit(current)">
-            <mat-icon>edit</mat-icon>
+            <mat-icon svgIcon="edit"></mat-icon>
             Edit patient
           </button>
           <button mat-flat-button type="button" (click)="openOrder(current)">
-            <mat-icon>add_circle</mat-icon>
+            <mat-icon svgIcon="add"></mat-icon>
             Create order
           </button>
         </div>
@@ -117,7 +117,7 @@ import { PatientFormDialog } from './patient-form-dialog';
               </p>
             } @else if (exams().length === 0) {
               <div class="empty-orders">
-                <mat-icon>assignment</mat-icon>
+                <mat-icon svgIcon="assignment"></mat-icon>
                 <p>No examination orders yet.</p>
                 <button mat-flat-button type="button" (click)="openOrder(current)">Create order</button>
               </div>

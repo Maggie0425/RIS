@@ -41,7 +41,7 @@ import { PatientFormDialog } from './patient-form-dialog';
       </div>
       @if (canWrite()) {
         <button mat-flat-button type="button" (click)="openForm()">
-          <mat-icon>person_add</mat-icon>
+          <mat-icon svgIcon="person_add"></mat-icon>
           Register patient
         </button>
       }
@@ -62,7 +62,7 @@ import { PatientFormDialog } from './patient-form-dialog';
     } @else if (!error() && patients().length === 0) {
       <mat-card appearance="outlined" class="state">
         <mat-card-content>
-          <mat-icon class="empty-icon">group</mat-icon>
+          <mat-icon class="empty-icon" svgIcon="group"></mat-icon>
           <h2>No patients yet</h2>
           <p>Register the first synthetic patient to begin an exam order.</p>
           @if (canWrite()) {
@@ -74,7 +74,7 @@ import { PatientFormDialog } from './patient-form-dialog';
       <mat-form-field appearance="outline" class="search">
         <mat-label>Search patients</mat-label>
         <input matInput [formControl]="search" placeholder="Name or MRN" />
-        <mat-icon matSuffix>search</mat-icon>
+        <mat-icon matSuffix svgIcon="search"></mat-icon>
       </mat-form-field>
       <mat-card appearance="outlined" class="table-card">
         <div class="table-scroll">
@@ -117,7 +117,7 @@ import { PatientFormDialog } from './patient-form-dialog';
                   [attr.aria-label]="'View ' + displayName(patient)"
                   (click)="$event.stopPropagation()"
                 >
-                  <mat-icon>visibility</mat-icon>
+                  <mat-icon svgIcon="visibility"></mat-icon>
                 </a>
                 <button
                   mat-icon-button
@@ -126,7 +126,7 @@ import { PatientFormDialog } from './patient-form-dialog';
                   [attr.aria-label]="'Edit ' + displayName(patient)"
                   (click)="openForm(patient, $event)"
                 >
-                  <mat-icon>edit</mat-icon>
+                  <mat-icon svgIcon="edit"></mat-icon>
                 </button>
               </td>
             </ng-container>
